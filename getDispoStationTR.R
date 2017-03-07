@@ -16,9 +16,9 @@ getDispoStationTR <- function() {
   stations_dl <- jsonlite::fromJSON(UrlDecaux)
   
   #suppression des variables inutiles
-  stations_dl.name <- NULL
-  stations_dl.address <- NULL
-  stations_dl.bonus <- NULL
+  stations_dl$name <- NULL
+  stations_dl$address <- NULL
+  stations_dl$bonus <- NULL
   
   return(stations_dl)
   
