@@ -12,7 +12,14 @@ getDispoStationTR <- function() {
   library(RCurl)
   library(curl)
   
+  #récupération des données temps réel
   stations_dl <- jsonlite::fromJSON(UrlDecaux)
+  
+  #suppression des variables inutiles
+  stations_dl.name <- NULL
+  stations_dl.address <- NULL
+  stations_dl.bonus <- NULL
+  
   return(stations_dl)
   
 }
