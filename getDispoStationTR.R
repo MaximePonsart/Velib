@@ -15,6 +15,9 @@ getDispoStationTR <- function() {
   #récupération des données temps réel
   stations_dl <- jsonlite::fromJSON(UrlDecaux)
   
+  #normalisation de la date
+  stations_dl$last_update <- as.POSIXct(stations_dl$last_update, origin="1970-01-01")
+  
   #suppression des variables inutiles
   stations_dl$name <- NULL
   stations_dl$address <- NULL
