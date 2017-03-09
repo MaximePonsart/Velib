@@ -5,8 +5,6 @@
 # http://shiny.rstudio.com
 #
 
-library(shiny)
-
 shinyUI(
   source("ui_carte.R", local = TRUE)$value
 )
