@@ -8,5 +8,6 @@
 shinyServer(function(input, output) {
   
   source("server_carte.R", local = TRUE)
+  source("server_detail.R", local = TRUE)
   
 })
