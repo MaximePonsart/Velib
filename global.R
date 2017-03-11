@@ -3,7 +3,7 @@
 ### chargement des packages requis :
 
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","Imap"))
+loadPackages(c("leaflet","shiny","Imap","ggmap","placement","geosphere"))
 
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
@@ -38,3 +38,7 @@ if (!exists(o) && file.exists(f)) {
   save(mDistanceStation, file=f)
 }
 rm(f,o)
+
+### récupération des monuments
+monuments <- sort(scan("data/monuments_paris.txt", what="character", sep="\n", fileEncoding = "UTF-8"))
+
