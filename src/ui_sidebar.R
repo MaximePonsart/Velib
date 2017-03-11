@@ -14,7 +14,7 @@ wellPanel(
   
   #parcours touristique
   selectInput("monument", "Visite touristique :",
-              choices = c("(non)", "Tour Eiffel", "Musée du Louvre", "Banque de France")),
+              choices = c("(non)", monuments)),
   
   #nombre de vélos a réserver
   sliderInput("equipe", "Combien êtes vous?", min = 1, max = 5, value = 1, step=1),
