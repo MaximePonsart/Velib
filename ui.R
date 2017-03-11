@@ -15,16 +15,16 @@ shinyUI(
     
     fluidRow(
       
-      column(width = 4, source("ui_sidebar.R", local = TRUE)$value),
+      column(width = 4, source("src/ui_sidebar.R", local = TRUE)$value),
 
       
       column(width = 8, 
              
              tabsetPanel(
                
-               source("ui_carte.R", local = TRUE)$value,
-               source("ui_detail.R", local = TRUE)$value,
-               source("ui_admin.R", local = TRUE)$value
+               source("src/ui_carte.R", local = TRUE)$value,
+               source("src/ui_detail.R", local = TRUE)$value,
+               source("src/ui_admin.R", local = TRUE)$value
                
              )
              
