@@ -1,3 +1,0 @@
-output$table <- renderDataTable({
-  stations
-})
