@@ -9,5 +9,6 @@ shinyServer(function(input, output) {
   
   source("src/server_carte.R", local = TRUE)
   source("src/server_detail.R", local = TRUE)
+  source("src/server_admin.R", local = TRUE)
   
 })

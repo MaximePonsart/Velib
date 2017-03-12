@@ -1,9 +1,12 @@
 #### configuration globale
 
+
 ### chargement des packages requis :
 
 source("src/loadPackages.R", local = TRUE)$value
 loadPackages(c("leaflet","shiny","Imap","ggmap","placement","geosphere"))
+
+options(shiny.trace=TRUE)
 
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
@@ -21,9 +24,11 @@ v <- do.call('rbind',strsplit(position,',',fixed=TRUE))
 stations$longitude <- as.numeric(v[,2])
 stations$latitude <- as.numeric(v[,1])
 rm(v, position)
-stations <- stations[stations$status=="OPEN",]
+#stations <- stations[stations$status=="OPEN",]
 #toilettage des noms des stations :
-stations_nom <- sort(trimws(sapply(strsplit(levels(stations$name),"-"),'[',2)))
+stations$number <- rownames(stations)
+stations$name <- trimws(sapply(strsplit(levels(stations$name),"-"),'[',2))
+stations_actives_nom <- sort(subset(stations,status=="OPEN")$name)
 
 ###calcul de la distance entre les stations :
 f <- "data/mDistanceStation.Rda"
