@@ -28,6 +28,19 @@
           adresseArriveeGeo <- geocode(input$adresseArrivee)
           map <- addMarkers(map, lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"], popup="arrivée")
         }
+        #positionnement sur la carte des stations sélectionnées :
+        if (input$stationDepart != "0") {
+          map <- addMarkers(map,
+                            lng=stations[input$stationDepart,]$longitude,
+                            lat=stations[input$stationDepart,]$latitude,
+                            popup="station départ")
+        }
+        if (input$stationArrivee != "0") {
+          map <- addMarkers(map,
+                            lng=stations[input$stationArrivee,]$longitude,
+                            lat=stations[input$stationArrivee,]$latitude,
+                            popup="station arrivée")
+        }
       })
     }
     
