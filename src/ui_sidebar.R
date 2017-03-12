@@ -7,10 +7,10 @@ wellPanel(
   textInput("adresseArrivee","Adresse d'arrivée : "),
   
   #station de départ
-  selectInput("stationDepart", "Station de départ : ", choices = c("(aucune)",stations_nom), selected=1),
+  selectInput("stationDepart", "Station de départ : ", choices = c("(aucune)", stations_actives_nom), selected=1),
   
   #station d'arrivée
-  selectInput("stationArrivee", "Station d'arrivée : ", choices = c("(aucune)",stations_nom), selected=1),
+  selectInput("stationArrivee", "Station d'arrivée : ", choices = c("(aucune)", stations_actives_nom), selected=1),
   
   #parcours touristique
   selectInput("monument", "Visite touristique :",
@@ -21,6 +21,8 @@ wellPanel(
   
   #délai de départ
   selectInput("horizon", "Je pars...",
-              choices = c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"), selected = "tout de suite!"),
+              choices = c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"), selected = "tout de suite!")
+  ,
   actionButton("go", "Go !")
+
 )

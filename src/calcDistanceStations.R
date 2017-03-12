@@ -74,3 +74,17 @@ getMatrixDistanceStation <- function(df, name_lat_lon) {
   return(distance)
 }
 
+#### calcul des stations les plus proches d'un point géographique
+# entrée :
+# lat : latitude du point de référence
+# lon : longitude du point de référence
+# n : nombre de stations les plus proches à calculer
+# ---------
+# sortie : vecteur des n stations les plus proches
+####
+getProchesStations <- function(lat, lon, n) {
+  v <- stations[stations$status=="OPEN",c("number","latitude","longitude")]
+  v$dist <- gdist(v$latitude, v$longitude, lat, lon, units="km")
+  v <- head(v[order(dist),], n)
+  return(v)
+}
