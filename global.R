@@ -28,7 +28,10 @@ rm(v, position)
 #toilettage des noms des stations :
 stations$number <- rownames(stations)
 stations$name <- trimws(sapply(strsplit(levels(stations$name),"-"),'[',2))
-stations_actives_nom <- sort(subset(stations,status=="OPEN")$name)
+#stations_actives_nom <- sort(subset(stations,status=="OPEN")$name)
+stations_actives_nom <- stations[stations$status=="OPEN",c("number","name")]
+stations_actives_nom <- stations_actives_nom[order(stations_actives_nom$name),]
+stations_actives_nom <- rbind(c("0","(aucune)"), stations_actives_nom)
 
 ###calcul de la distance entre les stations :
 f <- "data/mDistanceStation.Rda"
