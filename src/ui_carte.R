@@ -1,6 +1,6 @@
 
 tabPanel("carte",
-         leafletOutput("carteGeo"),
+         leafletOutput("carteGeo", height="500"),
          #filtre les stations avec les vélos disponibles
          radioButtons("allstation", "stations disponibles :",
                       c("seulement" = "only", "toutes" = "all"),

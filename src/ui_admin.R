@@ -3,6 +3,6 @@ tabPanel("admin",
          selectInput("modele_stat", "Modèle statistique :",
                      choices = c("A","B","C")),
          #zone de trace pour debug
-         h1("debug"),
+         h2("debug"),
          verbatimTextOutput("debug")
 )

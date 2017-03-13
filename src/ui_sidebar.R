@@ -7,17 +7,19 @@ wellPanel(
   textInput("adresseArrivee","Adresse d'arrivée : "),
   
   #station de départ
-  selectInput("stationDepart", "Station de départ : ", choices = c("(aucune)", stations_actives_nom), selected=1),
+  selectInput("stationDepart", "Station de départ : ",
+              choices = setNames(stations_actives_nom$number, stations_actives_nom$name), selected=1),
   
   #station d'arrivée
-  selectInput("stationArrivee", "Station d'arrivée : ", choices = c("(aucune)", stations_actives_nom), selected=1),
+  selectInput("stationArrivee", "Station d'arrivée : ",
+              choices = setNames(stations_actives_nom$number, stations_actives_nom$name), selected=1),
   
   #parcours touristique
   selectInput("monument", "Visite touristique :",
               choices = c("(non)", monuments)),
   
   #nombre de vélos a réserver
-  sliderInput("equipe", "Combien êtes vous?", min = 1, max = 5, value = 1, step=1),
+  #sliderInput("equipe", "Combien êtes vous?", min = 1, max = 5, value = 1, step=1),
   
   #délai de départ
   selectInput("horizon", "Je pars...",

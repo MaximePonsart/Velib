@@ -83,8 +83,21 @@ getMatrixDistanceStation <- function(df, name_lat_lon) {
 # sortie : vecteur des n stations les plus proches
 ####
 getProchesStations <- function(lat, lon, n) {
-  v <- stations[stations$status=="OPEN",c("number","latitude","longitude")]
+  #v <- stations[stations$status=="OPEN",c("number","latitude","longitude")]
+  v <- stations[stations$status=="OPEN",]
   v$dist <- gdist(v$latitude, v$longitude, lat, lon, units="km")
-  v <- head(v[order(dist),], n)
+  v <- v[order(v$dist),]
+  v <- v[seq(2,n+1),]
   return(v)
+}
+
+#### distance géo entre deux stations
+# entrée :
+# s1, s2 : les deux stations identifiées par leur numéro
+#-----
+# sortie : la distance géo entre les deux stations en km
+#####
+getDistanceGeoStations <- function(s1, s2) {
+  d <- mDistanceStation[s1, s2]
+  return(d)
 }
