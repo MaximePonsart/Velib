@@ -12,7 +12,7 @@
       addTiles() %>%
       setView(zoom=12, lat=48.863, lng=2.35) %>%
       addCircles(~ longitude, ~ latitude,
-                 layerId=stations_filtrees$number,
+                 layerId=~number,
                  popup = ~ sprintf("%s<br>%s vélos disponibles",name,as.character(available_bikes)),
                  radius = ~ sqrt(bike_stands)*10,
                  color = ~ ColorPal( available_bikes / (available_bikes + available_bike_stands)),
@@ -33,29 +33,34 @@
       })
     }
     
-    #positionnement sur la carte des stations sélectionnées :
-    #isolate({
-    displaystation <- function(deparr,m) {
-      i <- ifelse(deparr=="depart", input$stationDepart, input$stationArrivee)
-      if (i != "0") {
-        #cat(file=stderr(), "***hello ",deparr,i,"\n")
-        m <- addCircles(m,
-                          color=ifelse(deparr=="depart","orange","green"),
-                          lng=stations[i,]$longitude,
-                          lat=stations[i,]$latitude,
-                          radius=input$stationsProx,
-                          popup=sprintf("station %s :<br>%s<br>%s vélos disponibles",
-                                        ifelse(deparr=="depart","de départ","d'arrivée"),
-                                        stations[i,]$name,stations[i,]$available_bikes))
-      }
-      return(m)
-    }
-    
-    map <- displaystation("depart",map)
-    map <- displaystation("arrivee",map)
-    #})
-    
+
     mapOptions(map, zoomToLimits="first")
+    
+    
+    
+    # observe({
+    #   #positionnement sur la carte des stations sélectionnées :
+    #   #isolate({
+    #   displaystation <- function(deparr) {
+    #     i <- ifelse(deparr=="depart", input$stationDepart, input$stationArrivee)
+    #     if (i != "0") {
+    #       #cat(file=stderr(), "***hello ",deparr,i,"\n")
+    #       leafletProxy("carteGeo") %>%
+    #       addCircles(
+    #                       color=ifelse(deparr=="depart","orange","green"),
+    #                       lng=stations[i,]$longitude,
+    #                       lat=stations[i,]$latitude,
+    #                       radius=input$stationsProx,
+    #                       popup=sprintf("station %s :<br>%s<br>%s vélos disponibles",
+    #                                     ifelse(deparr=="depart","de départ","d'arrivée"),
+    #                                     stations[i,]$name,stations[i,]$available_bikes))
+    #     }
+    #   }
+    #   
+    #   displaystation("depart")
+    #   displaystation("arrivee")
+    #   #})
+    # })
     
   })
   
