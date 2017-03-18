@@ -7,6 +7,7 @@ source("src/loadPackages.R", local = TRUE)$value
 loadPackages(c("leaflet","shiny","Imap","ggmap","placement","geosphere"))
 
 options(shiny.trace=TRUE)
+options(xtable.include.rownames=F)
 
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
