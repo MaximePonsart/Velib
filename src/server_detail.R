@@ -14,10 +14,10 @@ output$distanceGeoStationsSelect <- renderText({
 output$stationsProches <- renderTable({
   if (input$choixStationDepartArrivee == "from" && input$stationDepart != "0") {
     s <- stations[input$stationDepart,]
-    res <- getProchesStations(s$latitude, s$longitude, input$stationsProx)
+    res <- getProchesStations(s$latitude, s$longitude, "distance", input$stationsProx)
   } else if (input$choixStationDepartArrivee == "to" && input$stationArrivee != "0") {
     s <- stations[input$stationArrivee,]
-    res <- getProchesStations(s$latitude, s$longitude, input$stationsProx)
+    res <- getProchesStations(s$latitude, s$longitude, "distance",input$stationsProx)
   }
   if (exists("res"))
     res[, c("number","dist",names(res)[-which(names(res) %in% c("number","dist","contract_name","bonus","position","longitude","latitude"))])]

@@ -10,9 +10,9 @@
     #initialisation de la carte géo :
     map <- leaflet(data = stations_filtrees, height="100%") %>%
       addTiles() %>%
-      setView(zoom=12, lat=48.90, lng=2.33) %>%
+      setView(zoom=12, lat=48.863, lng=2.35) %>%
       addCircles(~ longitude, ~ latitude, popup = ~ sprintf("%s<br>%s vélos disponibles",name,as.character(available_bikes)),
-                 radius = ~ sqrt(bike_stands),
+                 radius = ~ sqrt(bike_stands)*10,
                  color = ~ ColorPal( available_bikes / (available_bikes + available_bike_stands)),
                  stroke = TRUE, fillOpacity = 0.75)
     
@@ -22,7 +22,6 @@
         if (input$adresseDepart != "") {
           #adresseDepartGeo <- reactive({geocode(input$adresseDepart)})
           adresseDepartGeo <- geocode(input$adresseDepart)
-          #cat(file=stderr(), paste("hello","\n",adresseDepartGeo,"\n",sep="*"))
           map <- addMarkers(map, lng=adresseDepartGeo[1,"lon"], lat=adresseDepartGeo[1,"lat"], popup="départ")
         }
         if (input$adresseArrivee != "") {
@@ -34,20 +33,24 @@
     
     #positionnement sur la carte des stations sélectionnées :
     #isolate({
-      if (input$stationDepart != "0") {
-        map <- addCircleMarkers(map,
-                          color="orange",
-                          lng=stations[input$stationDepart,]$longitude,
-                          lat=stations[input$stationDepart,]$latitude,
-                          popup=sprintf("station de départ :<br>%s<br>%s vélos disponibles",stations[input$stationDepart,]$name,stations[input$stationDepart,]$available_bikes))
+    displaystation <- function(deparr,m) {
+      i <- ifelse(deparr=="depart", input$stationDepart, input$stationArrivee)
+      if (i != "0") {
+        #cat(file=stderr(), "***hello ",deparr,i,"\n")
+        m <- addCircles(m,
+                          color=ifelse(deparr=="depart","orange","green"),
+                          lng=stations[i,]$longitude,
+                          lat=stations[i,]$latitude,
+                          radius=input$stationsProx,
+                          popup=sprintf("station %s :<br>%s<br>%s vélos disponibles",
+                                        ifelse(deparr=="depart","de départ","d'arrivée"),
+                                        stations[i,]$name,stations[i,]$available_bikes))
       }
-      if (input$stationArrivee != "0") {
-        map <- addCircleMarkers(map,
-                          color="green",
-                          lng=stations[input$stationArrivee,]$longitude,
-                          lat=stations[input$stationArrivee,]$latitude,
-                          popup=sprintf("station d'arrivée :<br>%s<br>%s vélos disponibles",stations[input$stationArrivee,]$name,stations[input$stationArrivee,]$available_bikes))
-      }
+      return(m)
+    }
+    
+    map <- displaystation("depart",map)
+    map <- displaystation("arrivee",map)
     #})
     
     mapOptions(map, zoomToLimits="first")

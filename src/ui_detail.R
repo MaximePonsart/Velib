@@ -14,7 +14,7 @@ tabPanel("détail",
                                inline = T)
            ),
            column(width=6,
-                  sliderInput("stationsProx", "Stations proches", min = 1, max = 5, value = 1, step=1))
+                  sliderInput("stationsProx", "Stations + proches (en mètres)", min = 200, max = 1000, value = 1, step=200))
          ),
          tableOutput(outputId = "stationsProches")
 )
