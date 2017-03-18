@@ -11,7 +11,9 @@
     map <- leaflet(data = stations_filtrees, height="100%") %>%
       addTiles() %>%
       setView(zoom=12, lat=48.863, lng=2.35) %>%
-      addCircles(~ longitude, ~ latitude, popup = ~ sprintf("%s<br>%s vélos disponibles",name,as.character(available_bikes)),
+      addCircles(~ longitude, ~ latitude,
+                 layerId=stations_filtrees$number,
+                 popup = ~ sprintf("%s<br>%s vélos disponibles",name,as.character(available_bikes)),
                  radius = ~ sqrt(bike_stands)*10,
                  color = ~ ColorPal( available_bikes / (available_bikes + available_bike_stands)),
                  stroke = TRUE, fillOpacity = 0.75)
