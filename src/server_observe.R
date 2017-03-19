@@ -1,3 +1,23 @@
+updStationFromAdresse <- function (adresse, deparr) {
+  adresseGeo <- geocode(adresse)
+  latitude <- adresseGeo[1,"lat"]
+  longitude <- adresseGeo[1,"lon"]
+  if (deparr=="depart")
+    icone <- greenLeafIcon
+  else
+    icone <- redLeafIcon
+  leafletProxy("carteGeo") %>%
+    addMarkers(lng=longitude, lat=latitude,
+               icon=icone)
+  #calcul de la station la plus proche et màj UI :
+  s <- getProchesStations(latitude, longitude, "classement", 1)$number
+  print("!!!!!!")
+  print(s)
+  setMapCircleDeparr(s, deparr)
+  updateSelectInput(session,
+                    inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
+                    selected=s)
+}
 
 setMapCircleDeparr <- function (idStation, deparr) {
   leafletProxy("carteGeo") %>%
@@ -46,34 +66,26 @@ observeEvent(input$stationArrivee,{
 })
 
 observeEvent(input$go,{
-  # print("***5")
-  # if(input$go > 0){
-  #   print("***5bis")
-  #     #acquisition des positions géo des adresses de départ & arrivée + positionnement carte :
-  #     if (input$adresseDepart != "") {
-  #       adresseDepartGeo <- geocode(input$adresseDepart)
-  #       leafletProxy("carteGeo") %>%
-  #         addMarkers(lng=adresseDepartGeo[1,"lon"], lat=adresseDepartGeo[1,"lat"],
-  #                    icon=greenLeafIcon)
-  #     }
-  #     if (input$adresseArrivee != "") {
-  #       adresseArriveeGeo <- geocode(input$adresseArrivee)
-  #       leafletProxy("carteGeo") %>%
-  #         addMarkers(
-  #           lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
-  #           icon=redLeafIcon)
-  #     }
-  # }
+  #pour plus tard (déclenchement du calcul du parcours)
 })
 
 observeEvent(input$goCtrlDep,{
   if(input$goCtrlDep > 0){
-    #acquisition de la position géo + positionnement carte :
     if (input$adresseDepart != "") {
-      adresseDepartGeo <- geocode(input$adresseDepart)
-      leafletProxy("carteGeo") %>%
-        addMarkers(lng=adresseDepartGeo[1,"lon"], lat=adresseDepartGeo[1,"lat"],
-                   icon=greenLeafIcon)
+      updStationFromAdresse(input$adresseDepart,"depart")
+      # #acquisition de la position géo + positionnement carte :
+      # adresseDepartGeo <- geocode(input$adresseDepart)
+      # latitude <- adresseDepartGeo[1,"lat"]
+      # longitude <- adresseDepartGeo[1,"lon"]
+      # leafletProxy("carteGeo") %>%
+      #   addMarkers(lng=longitude, lat=latitude,
+      #              icon=greenLeafIcon)
+      # #calcul de la station la plus proche et màj UI :
+      # s <- getProchesStations(latitude, longitude, "classement", 1)
+      # print("!!!!!!")
+      # print(s)
+      # setMapCircleDeparr(s$number, "depart")
+      # updateSelectInput(session, inputId = "stationDepart", selected=s$number)
     }
   }
 })
@@ -82,11 +94,12 @@ observeEvent(input$goCtrlArr,{
   if(input$goCtrlArr > 0){
     #acquisition de la position géo + positionnement carte :
     if (input$adresseArrivee != "") {
-      adresseArriveeGeo <- geocode(input$adresseArrivee)
-      leafletProxy("carteGeo") %>%
-        addMarkers(
-          lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
-          icon=redLeafIcon)
+      updStationFromAdresse(input$adresseArrivee,"arrivee")
+    #   adresseArriveeGeo <- geocode(input$adresseArrivee)
+    #   leafletProxy("carteGeo") %>%
+    #     addMarkers(
+    #       lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
+    #       icon=redLeafIcon)
     }
   }
 })

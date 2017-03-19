@@ -1,4 +1,4 @@
-tabPanel("détail",
+tabPanel("détail", icon=icon("info-circle"),
          
          h2("Stations sélectionnées"),
          tableOutput(outputId = "stationsSelect"),

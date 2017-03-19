@@ -3,14 +3,14 @@ wellPanel(
   #lieu de départ
   fluidRow(
     column(width=10,textInput("adresseDepart","Adresse de départ : ")),
-    column(width=2,actionButton("goCtrlDep","",icon=icon(name="search",lib="font-awesome"))),
+    column(width=2,actionButton("goCtrlDep","",icon=icon(name="search"))),
     tags$style(type='text/css', "#goCtrlDep { width:100%; margin-top: 25px;}")
   ),
   
   #adresse d'arrivée
   fluidRow(
     column(width=10,textInput("adresseArrivee","Adresse d'arrivée : ")),
-    column(width=2,actionButton("goCtrlArr","",icon=icon(name="search",lib="font-awesome"))),
+    column(width=2,actionButton("goCtrlArr","",icon=icon(name="search"))),
     tags$style(type='text/css', "#goCtrlArr { width:100%; margin-top: 25px;}")
   ),
   
@@ -36,6 +36,6 @@ wellPanel(
   p(),
   
   #soumission formulaire
-  actionButton("go", "Go !", class="btn-primary")
+  actionButton("go", "go!", icon=icon(name="bicycle"), class="btn-primary")
 
 )

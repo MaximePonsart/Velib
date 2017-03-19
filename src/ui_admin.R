@@ -1,4 +1,4 @@
-tabPanel("admin",
+tabPanel("admin", icon=icon("lock"),
          #choix du modèle statistique
          selectInput("modele_stat", "Modèle statistique :",
                      choices = c("A","B","C")),
