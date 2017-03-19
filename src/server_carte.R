@@ -36,32 +36,6 @@
 
     mapOptions(map, zoomToLimits="first")
     
-    
-    
-    # observe({
-    #   #positionnement sur la carte des stations sélectionnées :
-    #   #isolate({
-    #   displaystation <- function(deparr) {
-    #     i <- ifelse(deparr=="depart", input$stationDepart, input$stationArrivee)
-    #     if (i != "0") {
-    #       #cat(file=stderr(), "***hello ",deparr,i,"\n")
-    #       leafletProxy("carteGeo") %>%
-    #       addCircles(
-    #                       color=ifelse(deparr=="depart","orange","green"),
-    #                       lng=stations[i,]$longitude,
-    #                       lat=stations[i,]$latitude,
-    #                       radius=input$stationsProx,
-    #                       popup=sprintf("station %s :<br>%s<br>%s vélos disponibles",
-    #                                     ifelse(deparr=="depart","de départ","d'arrivée"),
-    #                                     stations[i,]$name,stations[i,]$available_bikes))
-    #     }
-    #   }
-    #   
-    #   displaystation("depart")
-    #   displaystation("arrivee")
-    #   #})
-    # })
-    
   })
   
 
