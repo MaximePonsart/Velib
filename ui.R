@@ -9,16 +9,19 @@ shinyUI(
   
   fluidPage(
     
+    theme = shinythemes::shinytheme("united"),
     
     titlePanel("adopte un velib"),
-    
     
     fluidRow(
       
       column(width = 4, source("src/ui_sidebar.R", local = TRUE)$value),
 
-      
-      column(width = 8, 
+      column(width = 8,
+             
+             absolutePanel(top=-30, right=20,
+                           sliderInput("stationsProx", "Stations + proches (en mètres)",
+                                       min = 200, max = 1000, value = 1, step=200, ticks=FALSE)),
              
              tabsetPanel(
                

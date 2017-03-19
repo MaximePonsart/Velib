@@ -4,7 +4,7 @@
 ### chargement des packages requis :
 
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","Imap","ggmap","placement","geosphere"))
+loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere"))
 
 options(shiny.trace=TRUE)
 options(xtable.include.rownames=F)
