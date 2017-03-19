@@ -11,7 +11,7 @@ shinyUI(
     
     theme = shinythemes::shinytheme("united"),
     
-    titlePanel("adopte un velib"),
+    titlePanel("adopte un velib", windowTitle = "adopte un velib"),
     
     fluidRow(
       
