@@ -1,4 +1,3 @@
-#stationDepBak <<- "0"
 
 setMapCircleDeparr <- function (idStation, deparr) {
   leafletProxy("carteGeo") %>%
@@ -10,43 +9,19 @@ setMapCircleDeparr <- function (idStation, deparr) {
       radius=input$stationsProx)
 }
 
-# clearPopup <- function(idStation) {
-#   print("hi")
-#   print(idStation)
-#   if (idStation != "0") {
-#     s <- stations[idStation,]
-#     print("****************************")
-#     print(s)
-#     leafletProxy("carteGeo") %>%
-#       addCircles(
-#         lng=s$longitude,
-#         lat=s$latitude,
-#         #layerId=as.vector(s$number),
-#         #popup = ~ sprintf("%s<br>%s vélos disponibles",name,as.character(s$available_bikes)),
-#         radius = ~ sqrt(s$bike_stands)*10,
-#         #color = ~ ColorPal(s$available_bikes / (s$available_bikes + s$available_bike_stands)),
-#         stroke = TRUE, fillOpacity = 0.75) 
-#   }
-# }
 
 observeEvent(input$carteGeo_shape_click,{
   
   print("***1")
   event <- input$carteGeo_shape_click
-  #print(event$id)
-  #print(input$stationArrivee)
   
   eventIsArrivee <- event$id==input$stationArrivee || event$id=="arrivee"
   
   cible <- ifelse(eventIsArrivee, input$stationArrivee, event$id)
   setMapCircleDeparr(cible, "depart")
   updateSelectInput(session, inputId = "stationDepart", selected=cible)
-  #stationDepBak <<- event$id
-  #print("***1bis")
-  #print(event$id)
-  #print(input$stationArrivee)
+  
   if (eventIsArrivee) {
-    #print("goooooooooooooooooo")
     leafletProxy("carteGeo") %>%
       removeShape("arrivee")
     updateSelectInput(session, inputId = "stationArrivee", selected="0")
@@ -62,14 +37,56 @@ observeEvent(input$stationsProx,{
 
 observeEvent(input$stationDepart,{
   print("***3")
-  if (input$stationDepart != "0") {
-    #clearPopup(stationDepBak)
-    setMapCircleDeparr(input$stationDepart, "depart")
-  }
-  #stationDepBak <<- input$stationDepart
+  if (input$stationDepart != "0") setMapCircleDeparr(input$stationDepart, "depart")
 })
 
 observeEvent(input$stationArrivee,{
   print("***4")
   if (input$stationArrivee != "0") setMapCircleDeparr(input$stationArrivee, "arrivee")
+})
+
+observeEvent(input$go,{
+  # print("***5")
+  # if(input$go > 0){
+  #   print("***5bis")
+  #     #acquisition des positions géo des adresses de départ & arrivée + positionnement carte :
+  #     if (input$adresseDepart != "") {
+  #       adresseDepartGeo <- geocode(input$adresseDepart)
+  #       leafletProxy("carteGeo") %>%
+  #         addMarkers(lng=adresseDepartGeo[1,"lon"], lat=adresseDepartGeo[1,"lat"],
+  #                    icon=greenLeafIcon)
+  #     }
+  #     if (input$adresseArrivee != "") {
+  #       adresseArriveeGeo <- geocode(input$adresseArrivee)
+  #       leafletProxy("carteGeo") %>%
+  #         addMarkers(
+  #           lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
+  #           icon=redLeafIcon)
+  #     }
+  # }
+})
+
+observeEvent(input$goCtrlDep,{
+  if(input$goCtrlDep > 0){
+    #acquisition de la position géo + positionnement carte :
+    if (input$adresseDepart != "") {
+      adresseDepartGeo <- geocode(input$adresseDepart)
+      leafletProxy("carteGeo") %>%
+        addMarkers(lng=adresseDepartGeo[1,"lon"], lat=adresseDepartGeo[1,"lat"],
+                   icon=greenLeafIcon)
+    }
+  }
+})
+
+observeEvent(input$goCtrlArr,{
+  if(input$goCtrlArr > 0){
+    #acquisition de la position géo + positionnement carte :
+    if (input$adresseArrivee != "") {
+      adresseArriveeGeo <- geocode(input$adresseArrivee)
+      leafletProxy("carteGeo") %>%
+        addMarkers(
+          lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
+          icon=redLeafIcon)
+    }
+  }
 })
