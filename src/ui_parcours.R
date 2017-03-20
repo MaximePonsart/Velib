@@ -1,5 +1,8 @@
 tabPanel("trajet", icon=icon("bicycle"),
          
+         h2("Temps"),
+         verbatimTextOutput(outputId = "parcoursDateHeure"),
+         
          h2("Départ"),
          verbatimTextOutput(outputId = "parcoursDepart"),
          

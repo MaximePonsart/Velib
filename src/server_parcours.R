@@ -34,5 +34,12 @@ output$parcoursArrivee <- renderText({
 })
 
 output$parcoursDetail <- renderText({
+  #d <- gdist.total(rbind(rev(getLatLon(geoAdrDepart)), (stations[input$stationDepart,]$position)
   #s <- paste("Distance géo entre adresse et station de départ ", )
+})
+
+output$parcoursDateHeure <- renderText({
+  input$horizon
+  s <- "Heure de départ : "
+  s <- paste0(s, dtTrajet)
 })

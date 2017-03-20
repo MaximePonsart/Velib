@@ -105,4 +105,10 @@ getProchesStations <- function(lat, lon, mode, n) {
 getDistanceGeoStations <- function(s1, s2) {
   d <- mDistanceStation[s1, s2]
   return(d)
+  
+  
+getLatLon <- function(geo) {
+  return(strsplit(geo, split=",")[[1]])
+}  
+  
 }

@@ -28,7 +28,7 @@ wellPanel(
   
   #délai de départ
   selectInput("horizon", "Je pars...",
-              choices = c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"), selected = "tout de suite!"),
+              choices = setNames(as.character(seq(from=0, to=60, by=20)),c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"))),
   
   p(),
   

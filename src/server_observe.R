@@ -1,14 +1,19 @@
+#m‡j les stations de proximitÈ en fonction des adresses saisies
 updStationFromAdresse <- function (adresse, deparr) {
+  
   adresseGeo <- geocode(adresse, output="latlona")
   latitude <- adresseGeo[1,"lat"]
   longitude <- adresseGeo[1,"lon"]
+  
   if (deparr=="depart")
     icone <- greenLeafIcon
   else
     icone <- redLeafIcon
+  
   leafletProxy("carteGeo") %>%
     addMarkers(lng=longitude, lat=latitude,
                icon=icone)
+  
   #calcul de la station la plus proche et m√†j UI :
   s <- getProchesStations(latitude, longitude, "classement", 1)$number
   setMapCircleDeparr(s, deparr)
@@ -20,6 +25,14 @@ updStationFromAdresse <- function (adresse, deparr) {
   updateTextInput(session,
                   inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
                   value=adresseClean)
+  
+  #sauvegarde coordonnÈes en variable globale :
+  geoAdr <- paste(latitude, longitude, sep=",")
+  if (deparr=="depart")
+    geoAdrDepart <<- geoAdr
+  else
+    geoAdrArrivee <<- geoAdr
+  
 }
 
 setMapCircleDeparr <- function (idStation, deparr) {
@@ -70,25 +83,13 @@ observeEvent(input$stationArrivee,{
 
 observeEvent(input$go,{
   #pour plus tard (d√©clenchement du calcul du parcours)
+  #dtTrajet <<- Sys.time() + as.numeric(input$horizon)*60
 })
 
 observeEvent(input$goCtrlDep,{
   if(input$goCtrlDep > 0){
     if (input$adresseDepart != "") {
       updStationFromAdresse(input$adresseDepart,"depart")
-      # #acquisition de la position g√©o + positionnement carte :
-      # adresseDepartGeo <- geocode(input$adresseDepart)
-      # latitude <- adresseDepartGeo[1,"lat"]
-      # longitude <- adresseDepartGeo[1,"lon"]
-      # leafletProxy("carteGeo") %>%
-      #   addMarkers(lng=longitude, lat=latitude,
-      #              icon=greenLeafIcon)
-      # #calcul de la station la plus proche et m√†j UI :
-      # s <- getProchesStations(latitude, longitude, "classement", 1)
-      # print("!!!!!!")
-      # print(s)
-      # setMapCircleDeparr(s$number, "depart")
-      # updateSelectInput(session, inputId = "stationDepart", selected=s$number)
     }
   }
 })
@@ -98,11 +99,10 @@ observeEvent(input$goCtrlArr,{
     #acquisition de la position g√©o + positionnement carte :
     if (input$adresseArrivee != "") {
       updStationFromAdresse(input$adresseArrivee,"arrivee")
-    #   adresseArriveeGeo <- geocode(input$adresseArrivee)
-    #   leafletProxy("carteGeo") %>%
-    #     addMarkers(
-    #       lng=adresseArriveeGeo[1,"lon"], lat=adresseArriveeGeo[1,"lat"],
-    #       icon=redLeafIcon)
     }
   }
+})
+
+observeEvent(input$horizon,{
+  dtTrajet <<- Sys.time() + as.numeric(input$horizon)*60
 })
