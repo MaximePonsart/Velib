@@ -15,6 +15,9 @@ source("src/calcDistanceStations.R", local = TRUE)$value
 ### initialisation des variables globales :
 
 ColorPal <- colorNumeric(scales::seq_gradient_pal(low = "#132B43", high = "#56B1F7", space = "Lab"), domain = c(0,1))
+dtTrajet <<- Sys.time() # date-heure du trajet
+geoAdrDepart <<- NULL
+geoAdrArrivee <<- NULL
 
 ### récupération des stations :
 
