@@ -1,0 +1,56 @@
+Velib
+
+https://blogs.msdn.microsoft.com/big_data_france/2016/04/12/velib-cortana-analytics-3/
+
+http://eric.univ-lyon2.fr/~jjacques/Download/Cours/FDD-TPclustering.pdf
+http://www.vincentlemaire-labs.fr/CluCo2014/slidesEGCCluCoChabchoub.pdf
+
+http://forums.cirad.fr/logiciel-R/viewtopic.php?t=6102
+http://www.xavierdupre.fr/app/ensae_teaching_cs/helpsphinx/notebooks/ml_timeseries_base.html#predictions-lineaires
+http://www.grappa.univ-lille3.fr/~mary/cours/stats/centrale/seriestemp/
+http://perso.ens-lyon.fr/lise.vaudor/autocorrelation-de-series-temporelles-ou-spatiales/
+http://www.xavierdupre.fr/app/ensae_teaching_cs/helpsphinx/notebooks/ml_timeseries_base.html#predictions-lineaires
+https://docs.microsoft.com/fr-fr/azure/machine-learning/machine-learning-custom-r-modules
+http://wwwdfr.ensta.fr/Cours/docs/MAP-STA2/cours1_R_serie_temp_pdf_version.pdf
+http://eric.univ-lyon2.fr/~jjacques/Download/Cours/ST-Cours.pdf
+http://rug.mnhn.fr/semin-r/PDF/semin-R_ts_JSueur_211108.pdf
+https://www.rstudio.com/resources/cheatsheets/
+
+
+La fonction decompose
+permet d’extraire d’une série temporelle (via la méthode de
+                                          la moyenne mobile) :
+  serie_decomp<-decompose(serie,type=c(”additive”,”mu
+                                        tliplicative”))
+– la composante saisonnière :
+  serie_decomp$seasonal
+, que l’on suppose additive ou multiplicative dans
+l’option
+type
+,
+– la tendance :
+  serie_decomp$trend
+,
+– le partie aléatoire stationnaire de la série :
+  serie_decomp$random
+.
+La fonction
+diff(serie,lag=T,difference=k)
+permet d’appliquer l’opérateur de différenciation
+∆
+k
+T
+.
+La fonction
+Box.test(serie,lag=H)
+examine l’hypothèse nulle de nullité des H première auto-co
+variance, à
+l’aide du test du portemanteau. Par défaut H est fixé à 1, et seu
+le la nullité de l’auto-covariance d’ordre 1 est testée.
+Pour tester si la série peut-être apparentée à un bruit blanc
+, nous fixerons arbitrairement un H de l’ordre de 20 (nous
+                                                      considérerons abusivement que si les 20 premières auto-cor
+                                                      rélations sont nulles, la série est indépendante).
+
+
+
