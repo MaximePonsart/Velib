@@ -1,5 +1,5 @@
 updStationFromAdresse <- function (adresse, deparr) {
-  adresseGeo <- geocode(adresse)
+  adresseGeo <- geocode(adresse, output="latlona")
   latitude <- adresseGeo[1,"lat"]
   longitude <- adresseGeo[1,"lon"]
   if (deparr=="depart")
@@ -11,12 +11,15 @@ updStationFromAdresse <- function (adresse, deparr) {
                icon=icone)
   #calcul de la station la plus proche et màj UI :
   s <- getProchesStations(latitude, longitude, "classement", 1)$number
-  print("!!!!!!")
-  print(s)
   setMapCircleDeparr(s, deparr)
   updateSelectInput(session,
                     inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
                     selected=s)
+  #màj l'adresse clean :
+  adresseClean <- paste(head(strsplit(adresseGeo[1,"address"],",")[[1]],-1),collapse=",")
+  updateTextInput(session,
+                  inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
+                  value=adresseClean)
 }
 
 setMapCircleDeparr <- function (idStation, deparr) {

@@ -26,9 +26,6 @@ wellPanel(
   selectInput("monument", "Visite touristique :",
               choices = c("(non)", monuments)),
   
-  #nombre de vélos a réserver
-  #sliderInput("equipe", "Combien êtes vous?", min = 1, max = 5, value = 1, step=1),
-  
   #délai de départ
   selectInput("horizon", "Je pars...",
               choices = c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"), selected = "tout de suite!"),
@@ -36,6 +33,6 @@ wellPanel(
   p(),
   
   #soumission formulaire
-  actionButton("go", "go!", icon=icon(name="bicycle"), class="btn-primary")
+  actionButton("go", "", icon=icon(name="bicycle"), class="btn-primary")
 
 )
