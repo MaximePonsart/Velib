@@ -4,15 +4,17 @@ setTextDepArr <- function(deparr) {
     adresse <- input$adresseDepart
     station <- input$stationDepart
     noChoix <- "le départ"
+    geo <- geoAdrDepart
   } else {
     adresse <- input$adresseArrivee
     station <- input$stationArrivee
     noChoix <- "l'arrivée"
+    geo <- geoAdrArrivee
   }
   s <- ""
-  if (input$adresseDepart !="")
-    s <- isolate(paste("(adresse)", adresse, sep=" "))
-  if (input$stationDepart !="0")
+  if (adresse !="")
+    s <- isolate(paste("(adresse)", adresse, "[",geo,"]", sep=" "))
+  if (station !="0")
     s <- paste(s,
                paste("(station)", stations[station,]$name, sep=" "),
                sep=ifelse(s=="","","\n"))
