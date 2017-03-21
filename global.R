@@ -12,6 +12,7 @@ options(xtable.include.rownames=F)
 #inclusion de fonctions génériques
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
+source("src/trajet.R", local = TRUE)$value
 
 #----------------------------------------------------------------------------------------
 # initialisation des variables constantes
@@ -21,8 +22,6 @@ ColorPal <- colorNumeric(scales::seq_gradient_pal(low = "#132B43", high = "#56B1
 
 #API key DarkSky et variables météo (précipitations, température)
 apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
-meteoPrecipitations <<- NULL
-meteoTemperature <<- NULL
 
 #Coordonnées de Paris
 geoParis <- "48.863,2.35"
@@ -49,6 +48,8 @@ dtTrajet <<- NULL # date-heure du trajet
 geoAdrDepart <<- NULL # adresse de départ au format "lat,lon"
 geoAdrArrivee <<- NULL # idem pour adresse d'arrivée
 modele <<- NULL # modèle statistique de prévision
+meteoPrecipitations <<- NULL # précipitations météo de l'heure cible
+meteoTemperature <<- NULL # température météo de l'heure cible
 
 #----------------------------------------------------------------------------------------
 
@@ -80,6 +81,6 @@ if (!exists(o) && file.exists(fMatDistanceStation)) {
 }
 rm(o)
 
-### rÃ©cupÃ©ration des monuments
+### récupération des monuments
 monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "UTF-8"))
 
