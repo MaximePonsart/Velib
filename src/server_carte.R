@@ -20,7 +20,7 @@ redLeafIcon <- makeIcon(
     #initialisation de la carte géo :
     map <- leaflet(data = s_ouvertes, height="100%") %>%
       addTiles() %>%
-      setView(zoom=12, lat=48.863, lng=2.35) %>%
+      setView(zoom=12, lat=getLat(geoParis), lng=getLon(geoParis)) %>%
       addCircles(data=s_ouvertes[s_ouvertes$available_bikes>0,],
                  lng=~longitude,
                  lat=~latitude,

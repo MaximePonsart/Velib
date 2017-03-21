@@ -27,7 +27,6 @@ output$parcoursDepart <- renderText({
   #     getDistanceGeoStations(input$stationDepart, input$stationArrivee)
   input$goCtrlDep
   return(setTextDepArr("depart"))
-    
 })
 
 output$parcoursArrivee <- renderText({
@@ -44,4 +43,8 @@ output$parcoursDateHeure <- renderText({
   input$horizon
   s <- "Heure de départ : "
   s <- paste0(s, dtTrajet)
+})
+
+output$parcoursMeteo <- renderText({
+  
 })

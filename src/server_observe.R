@@ -14,13 +14,13 @@ updStationFromAdresse <- function (adresse, deparr) {
     addMarkers(lng=longitude, lat=latitude,
                icon=icone)
   
-  #calcul de la station la plus proche et màj UI :
+  #calcul de la station la plus proche et maj UI :
   s <- getProchesStations(latitude, longitude, "classement", 1)$number
   setMapCircleDeparr(s, deparr)
   updateSelectInput(session,
                     inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
                     selected=s)
-  #màj l'adresse clean :
+  #maj l'adresse clean :
   adresseClean <- paste(head(strsplit(adresseGeo[1,"address"],",")[[1]],-1),collapse=",")
   updateTextInput(session,
                   inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
@@ -84,6 +84,7 @@ observeEvent(input$stationArrivee,{
 observeEvent(input$go,{
   #pour plus tard (déclenchement du calcul du parcours)
   #dtTrajet <<- Sys.time() + as.numeric(input$horizon)*60
+  goCalcTrajet()
 })
 
 observeEvent(input$goCtrlDep,{

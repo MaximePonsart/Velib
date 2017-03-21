@@ -105,10 +105,22 @@ getProchesStations <- function(lat, lon, mode, n) {
 getDistanceGeoStations <- function(s1, s2) {
   d <- mDistanceStation[s1, s2]
   return(d)
-  
-  
-getLatLon <- function(geo) {
-  return(strsplit(geo, split=",")[[1]])
-}  
-  
 }
+
+#convertit une coordonnée chaîne en vecteur (lat,lon)
+# "1.12,2.33" => ("1.12","2.33")
+getLatLon <- function(geo) {
+  return(setNames(strsplit(geo, split=",")[[1]],c("lat","lon")))
+}
+
+#renvoit la latitude d'une coordonnée chaîne
+# "1.12,2.33" => "1.12"
+getLat <- function(geo) {
+  return(strsplit(geo, split=",")[[1]][1])
+}  
+
+#renvoit la longitude d'une coordonnée chaîne
+# "1.12,2.33" => "2.33"
+getLon <- function(geo) {
+  return(strsplit(geo, split=",")[[1]][2])
+}  
