@@ -1,4 +1,4 @@
-#màj les stations de proximité en fonction des adresses saisies
+#m?j les stations de proximit? en fonction des adresses saisies
 updStationFromAdresse <- function (adresse, deparr) {
   
   adresseGeo <- geocode(adresse, output="latlona")
@@ -26,7 +26,7 @@ updStationFromAdresse <- function (adresse, deparr) {
                   inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
                   value=adresseClean)
   
-  #sauvegarde coordonnées en variable globale :
+  #sauvegarde coordonn?es en variable globale :
   geoAdr <- paste(latitude, longitude, sep=",")
   if (deparr=="depart")
     geoAdrDepart <<- geoAdr
@@ -82,7 +82,10 @@ observeEvent(input$stationArrivee,{
 })
 
 observeEvent(input$go,{
-  #coming very soon déclenchement du traitement
+  #mÃ j mÃ©tÃ©o
+  getMeteo(dtTrajet)
+  
+  #coming very soon dÃ©clenchement du traitement
   #goCalcTrajet()
 })
 

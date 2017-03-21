@@ -46,5 +46,8 @@ output$parcoursDateHeure <- renderText({
 })
 
 output$parcoursMeteo <- renderText({
-  
+  input$go
+  s <- ""
+  s <- paste0(s, "Température : ", meteoTemperature,"\n")
+  s <- paste0(s, "Précipitations : ", meteoPrecipitations,"\n")
 })

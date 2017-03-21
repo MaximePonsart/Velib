@@ -100,22 +100,36 @@ getTrajetsFromStationToStation <- function(sdep, sarr) {
 }
 
 
-#actualise les infos météo (précipitations, température)
-getMeteo <- function() {
+# ---
+# actualise les infos météo (précipitations, température en fonction de l'heure souhaitée)
+# dt : l'heure souhaitée
+# ---
+# renvoit un data frame avec la précipitation et la température (et fixe les mêmes infos en variable globale)
+# ---
+getMeteo <- function(dt) {
   
-  #url <- 'https://api.darksky.net/forecast/9778cdc6ddc2eaf7b6854ad412c21eec/48.866667,2.333333'
   Sys.setenv(DARKSKY_API_KEY = apiKeyDarksky)
   
-  #meteo actuelle
-  # tm <- get_current_forecast(as.numeric(getLat(geoParis)),
-  #                            as.numeric(getLon(geoParis)),
-  #                            units="si",language = "fr")
-  # tm1<-tm$hourly[1,c("time","summary","precipIntensity","temperature")]
+  #récupération de la météo disponible
+  tm <- get_current_forecast(as.numeric(getLat(geoParis)),
+                             as.numeric(getLon(geoParis)),
+                             units="si",language = "fr")
   
-  # meteoPrecipitations <<- 0.1
-  # meteoTemperature <<- 10
+  #filtrage sur l'heure courante ainsi que sur les deux premières heures disponibles
+  v <- c("time","precipIntensity","temperature")
+  meteo <- data.frame()
+  meteo <- rbind.data.frame(meteo, as.data.frame(tm$currently[,v]))
+  meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[1,v]))
+  meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[2,v]))
+
+  #on retient la météo la plus proche de l'heure souhaitée  
+  meteo <- meteo[which.min(abs(meteo$time - dt)),]
   
-  return(c(0.1,10))
+  #fixe variables globales
+  meteoPrecipitations <<- meteo$precipIntensity
+  meteoTemperature <<- meteo$temperature
+  
+  return(meteo)
   
 }
 
