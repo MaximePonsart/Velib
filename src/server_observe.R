@@ -82,9 +82,8 @@ observeEvent(input$stationArrivee,{
 })
 
 observeEvent(input$go,{
-  #pour plus tard (d√©clenchement du calcul du parcours)
-  #dtTrajet <<- Sys.time() + as.numeric(input$horizon)*60
-  goCalcTrajet()
+  #coming very soon dÈclenchement du traitement
+  #goCalcTrajet()
 })
 
 observeEvent(input$goCtrlDep,{
