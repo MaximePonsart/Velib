@@ -3,7 +3,7 @@
 
 #chargement des packages requis
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky"))
+loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway"))
 
 #options diverses
 options(shiny.trace=TRUE)
@@ -23,6 +23,9 @@ ColorPal <- colorNumeric(scales::seq_gradient_pal(low = "#132B43", high = "#56B1
 #API key DarkSky et variables mÃ©tÃ©o (prÃ©cipitations, tempÃ©rature)
 apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
 
+#API key Google Direction
+apiKeyGoogleDirection <- "AIzaSyA6A8jEGpG3__YDEIZngB5x_t8K12g_v7s"
+
 #CoordonnÃ©es de Paris
 geoParis <- "48.863,2.35"
 
@@ -35,6 +38,9 @@ fMonuments <- "data/monuments_paris.txt"
 #fichier matrice des distances stations
 fMatDistanceStation <- "data/mDistanceStation.Rda"
 
+#fichier du modèle de prévision (Random Forest, aka 'Serious")
+fModRandomForest <- "data/modRandomForest.RDS"
+
 #data frame des stations
 stations <- NULL
 
@@ -45,8 +51,15 @@ stations_actives_nom <- NULL
 # initialisation des variables globales
 
 dtTrajet <<- NULL # date-heure du trajet
-geoAdrDepart <<- NULL # adresse de dÃ©part au format "lat,lon"
-geoAdrArrivee <<- NULL # idem pour adresse d'arrivÃ©e
+
+geoAdrDepart <<- NULL # adresse de départ au format "lat,lon"
+geoAdrArrivee <<- NULL # idem pour adresse d'arrivée
+geoStaDepTrajet <<- NULL #idem pour la station de départ
+geoStaArrTrajet <<- NULL #idem pour la station d'arrivée
+
+stationDepTrajet <<- NULL # la station de départ retenue pour le trajet
+stationArrTrajet <<- NULL # idem pour la station d'arrivée
+
 modele <<- "happy" # modÃ¨le statistique de prÃ©vision
 meteoPrecipitations <<- NULL # prÃ©cipitations mÃ©tÃ©o de l'heure cible
 meteoTemperature <<- NULL # tempÃ©rature mÃ©tÃ©o de l'heure cible
@@ -85,4 +98,8 @@ rm(o)
 
 ### rÃ©cupÃ©ration des monuments
 monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "UTF-8"))
+
+### chargement du modèle statistique de prévision
+#modele_RF<-readRDS(file=fModRandomForest)
+#(à tester avant activation)
 
