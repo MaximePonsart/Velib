@@ -78,14 +78,15 @@ getMatrixDistanceStation <- function(df, name_lat_lon) {
 # entrée :
 # lat : latitude du point de référence
 # lon : longitude du point de référence
-# mode : mesure de proximité ("classement" : les plus proches, "distance" : éloignement géo en mètres)
-# n : facteur de proximité des stations à retenir (n plus proches ou distantes de n mètres)
+# mode : mesure de proximité ("classement" : les plus proches, "distance" : éloignement géo en métres)
+# n : facteur de proximité des stations é retenir (n plus proches ou distantes de n métres)
 # ---------
 # sortie : vecteur des n stations les plus proches
 ####
 getProchesStations <- function(lat, lon, mode, n) {
   v <- stations[stations$status=="OPEN",]
-  v$dist <- round(gdist(v$latitude, v$longitude, lat, lon, units="m"))
+  #v$dist <- round(gdist(v$latitude, v$longitude, lat, lon, units="m"))
+  v$dist <- apply(v[,c("latitude","longitude")],1,function(x) {round(gdist(x[1], x[2], lat, lon, units="m"))})
   if (mode=="classement") {
     v <- v[order(v$dist),]
     v <- v[seq(2,n+1),]
@@ -107,20 +108,20 @@ getDistanceGeoStations <- function(s1, s2) {
   return(d)
 }
 
-#convertit une coordonnée chaîne en vecteur (lat,lon)
+#convertit une coordonnée chaéne en vecteur (lat,lon)
 # "1.12,2.33" => ("1.12","2.33")
 getLatLon <- function(geo) {
   return(setNames(strsplit(geo, split=",")[[1]],c("lat","lon")))
 }
 
-#renvoit la latitude d'une coordonnée chaîne
-# "1.12,2.33" => "1.12"
+#renvoit la latitude d'une coordonnée chaéne
+# "1.12,2.33" => 1.12
 getLat <- function(geo) {
-  return(strsplit(geo, split=",")[[1]][1])
+  return(as.numeric(strsplit(geo, split=",")[[1]][1]))
 }  
 
-#renvoit la longitude d'une coordonnée chaîne
-# "1.12,2.33" => "2.33"
+#renvoit la longitude d'une coordonnée chaéne
+# "1.12,2.33" => 2.33
 getLon <- function(geo) {
-  return(strsplit(geo, split=",")[[1]][2])
+  return(as.numeric(strsplit(geo, split=",")[[1]][2]))
 }  

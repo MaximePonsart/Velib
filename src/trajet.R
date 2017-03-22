@@ -8,15 +8,16 @@
 getSommeDateDuree <- function(df, mat, dir, dim) {
   
   m <- mat
-  coef <- elseif(dim=="duree", 1, 60)
-  var <- elsif(dim=="duree", "duree", "date_heure")
+  coef <- ifelse(dim=="duree", 1, 60)
+  var <- ifelse(dim=="duree", "duree", "date_heure")
   
   if (dir=="ligne") 
-    for (i in 1:nrow(m)) m[i,] <- m[i,] + df[df$number==rownames(m)[i],c(var)]
+    for (i in 1:nrow(m)) m[i,] <- m[i,]*coef + df[df$number==rownames(m)[i],c(var)]
   else # "colonne"
-    for (i in 1:ncol(m)) m[i,] <- m[i,] + df[df$number==colnames(m)[i],c(var)]
+    for (i in 1:ncol(m)) m[i,] <- m[i,]*coef + df[df$number==colnames(m)[i],c(var)]
     
   return(m)
+  
 }
   
 
@@ -33,7 +34,7 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
   
   getPrev <- function (s, dh, m) {
     if (modele=="happy") return(1)
-    if (modele=="alea") return(sample(0:stations[stations$number==s,]$bike_stands,1))
+    if (modele=="random") return(sample(0:s$bike_stands,1))
     #if (modele=="serious") return(...)
   }
   
@@ -42,61 +43,48 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
   else # mode=="parking"
     res <- data.frame(number=character(0), available_bike_stands=numeric(0))
   
-  for (i in sta) {
-    p <- getPrev(sta[i], dateheure, meteo)
-    res <- rbind(res, c(sta[i],p))
+  for (i in 1:nrow(sta)) {
+    p <- getPrev(sta[i,], dateheure, meteo)
+    res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
   }
   return(res)
-}
-
-
-# ---
-#calcule la prévision du nombre de parkings vélos disponibles
-# ---
-# sa : vecteur des stations (id de stations)
-# dateheure : data frame d'heure de départ pour chaque station départ
-# mduree : matrice des durées trajet vélo entre stations de départ et d'arrivée
-# meteo : la météo
-# ---
-# renvoit un data frame avec la prévision du nombre de parkings
-# ---
-getPrevParkDispo <- function (sa, dh_dep, mduree, meteo) {
-  #calcul de l'heure d'arrivée à chaque station suivant la station de départ :
-  dt_arr <- mduree
-  for (i in 1:nrow(dt_arr)) dt_arr[i,] <-
-      dt_arr[i,]*60 + dh_dep[dh_dep$number==rownames(dt_arr)[i],]$date_heure
 }
 
 
 #calcule la durée du trajet à pieds entre une adresse et une suite de stations
 getTrajetsFromAdrToStations <- function(geoAdr, sta) {
   res <- data.frame(number=character(0), duree=numeric(0))
-  for (i in sta) {
-    dt <- drive_time(address=geoAdr, dest=stations[stations$number==i,]$position, auth="standard_api",
+  for (i in 1:nrow(sta)) {
+    dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
                privkey="", clean=FALSE, add_date='today',
                verbose=FALSE, travel_mode="walking",
                units="metric")
-    rbind(res,c(sta[i], dt$time_mins))
+    res <- rbind(res, data.frame(number=sta[i,]$number, duree=dt$time_mins))
   }
   return(res)
 }
 
 
-#calcule dans une matrice la durée du trajet en vélo entre chaque station
+#calcule en matrice la durée du trajet en vélo entre chaque station
 getTrajetsFromStationToStation <- function(sdep, sarr) {
+  
   dt <- function(sd,sa) {
-    res <- drive_time(address=stations[stations$number==sd,]$position,
-                      dest=stations[stations$number==sa,]$position,
+    res <- drive_time(address=sd,
+                      dest=sa,
                       auth="standard_api", privkey="", clean=FALSE, add_date='today',
                       verbose=FALSE, travel_mode="bicycling",
                       units="metric")
     return(res)
   }
-  mat <- matrix(NA, nrow=length(sdep), ncol=length(sarr))
-  #dimnames(mat) <- list(stations[stations$number==sdep,]$number,stations[stations$number==sarr,]$number)
-  dimnames(mat) <- list(sdep, sarr)
-  outer(1:nrow(mat), 1:ncol(mat) , FUN=function(r,c) dt(r+c))
+  
+  mat <- matrix(NA, nrow=nrow(sdep), ncol=nrow(sarr))
+  dimnames(mat) <- list(sdep$number, sarr$number)
+  
+  for (i in 1:ncol(mat))
+    mat[,i] <- dt(sdep$position,rep(sarr[i,]$position,nrow(mat)))$time_mins
+  
   return(mat)
+  
 }
 
 
@@ -149,21 +137,21 @@ getPrecip <- function(meteo) {
 goCalcTrajet <- function() {
   
   #récupération des 5 stations les plus proches depuis l'adresse départ
-  s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrArrivee), "classement", 5)
+  s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrDepart), "classement", 5)
   
   #idem pour l'adresse d'arrivée
-  s_fin <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
+  s_arrivee <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
   
   #récupération de la météo
-  meteo <- getMeteo()
+  meteo <- getMeteo(dtTrajet)
   
   #récupération heure de départ
   dtTrajet
   
   #calcul de la durée du trajet pédestre entre l'adresse de départ et les stations proches
   duree_marche_depart <- getTrajetsFromAdrToStations(geoAdrDepart, s_depart)
-  dt_stations_depart <- dtTrajet + duree_marche_depart*60 #date-heure de départ depuis les stations
-  colnames(dt_stations_depart)[2] <- "date_heure"
+  dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
+                                   date_heure=duree_marche_depart$duree*60+dtTrajet) 
   
   #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
@@ -173,7 +161,7 @@ goCalcTrajet <- function() {
   
   #calcul de la prévision des parkings dispos sur les stations d'arrivée
   dt_stations_arrivee <- getSommeDateDuree(dt_stations_depart, #date-heure d'arrivée aux stations
-                                           duree_velo_trajets*60,
+                                           duree_velo_trajets,
                                            "ligne", "date")
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
   
