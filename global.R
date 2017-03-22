@@ -47,16 +47,18 @@ stations_actives_nom <- NULL
 dtTrajet <<- NULL # date-heure du trajet
 geoAdrDepart <<- NULL # adresse de départ au format "lat,lon"
 geoAdrArrivee <<- NULL # idem pour adresse d'arrivée
-modele <<- NULL # modèle statistique de prévision
+modele <<- "happy" # modèle statistique de prévision
 meteoPrecipitations <<- NULL # précipitations météo de l'heure cible
 meteoTemperature <<- NULL # température météo de l'heure cible
 
 #----------------------------------------------------------------------------------------
 
 # récupération des stations :
-stations<-read.csv(fStation, row.names=1, sep=";", fileEncoding = "UTF-8")
-position <- as.character(stations$position)
-v <- do.call('rbind',strsplit(position,',',fixed=TRUE))
+stations<-read.csv(fStation, row.names=1, sep=";", fileEncoding = "UTF-8", stringsAsFactors = T)
+stations$position <- as.character(stations$position)
+#stations$status <- as.factor(stations$status)
+#position <- as.character(stations$position)
+v <- do.call('rbind',strsplit(stations$position,',',fixed=TRUE))
 stations$longitude <- as.numeric(v[,2])
 stations$latitude <- as.numeric(v[,1])
 rm(v, position)
