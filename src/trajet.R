@@ -1,4 +1,43 @@
 
+#---
+# calcule le tracé trajet via l'API Google Direction
+# d : lieu de départ
+# a : lieu d'arrivée
+# m : le mode de déplacement ("bicycling" : vélo, ...)
+#---
+# renvoit un data frame
+#---
+setGoogleTrajet <- function (d, a, m) {
+  
+  df <- google_directions(origin = c(getLat(d), getLon(d)),
+                          destination = c(getLat(a), getLon(a)),
+                          key = apiKeyGoogleDirection,
+                          mode = m,
+                          simplify = TRUE)
+  
+  polyline <-df$routes$overview_polyline$points
+  
+  df <- decode_pl(polyline)
+  
+}
+
+# trace le trajet du parcours sur la carte
+# df : data frame calculé par l'API Google Direction
+traceTrajet <- function () {
+  
+# appel de l'API
+  df_marche_dep <- setGoogleTrajet(geoAdrDepart, geoStaDepTrajet, "walking")
+  df_velo <- setGoogleTrajet(geoStaDepTrajet, geoStaArrTrajet, "bicycling")
+  df_marche_arr <- setGoogleTrajet(geoStaArrTrajet, geoAdrArrivee, "walking")
+  
+  leafletProxy("carteGeo") %>%
+    addPolylines(data = df_marche_dep, lat = ~lat, lng = ~lon) %>%
+    addPolylines(data = df_velo, lat = ~lat, lng = ~lon) %>%
+    addPolylines(data = df_marche_arr, lat = ~lat, lng = ~lon)
+  
+}
+
+
 #additionne des dÃ©lais de trajet ligne avec des dÃ©lais de trajet matrice
 # df : data frame (trajet ligne)
 # mat : matrice de durÃ©es
@@ -7,14 +46,19 @@
 # rÃ©sultat : la matrice rÃ©sultant de la somme
 getSommeDateDuree <- function(df, mat, dir, dim) {
   
-  m <- mat
   coef <- ifelse(dim=="duree", 1, 60)
   var <- ifelse(dim=="duree", "duree", "date_heure")
   
-  if (dir=="ligne") 
-    for (i in 1:nrow(m)) m[i,] <- m[i,]*coef + df[df$number==rownames(m)[i],c(var)]
-  else # "colonne"
-    for (i in 1:ncol(m)) m[i,] <- m[i,]*coef + df[df$number==colnames(m)[i],c(var)]
+  m <- matrix(nrow=nrow(mat), ncol=ncol(mat))
+  if (dir=="ligne") {
+    for (i in 1:nrow(mat)) {
+      m <- rbind(m, mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)])
+    }
+  }
+  else { # "colonne"
+    for (i in 1:ncol(mat))
+      m <- cbind(m, mat[i,]*coef + df[df$number==colnames(mat)[i],c(var)])
+  }
     
   return(m)
   
@@ -177,14 +221,20 @@ goCalcTrajet <- function() {
   duree_totale[rownames(duree_totale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <- NA
   duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <- NA
   
-  #rÃ©sultat final : le trajet de parcours dont la durÃ©e est la plus faible
+  #résultat final : le trajet de parcours dont la durÃ©e est la plus faible
   duree_min <- min(duree_totale, na.rm=T)
   trajet_retenu <- head(which(duree_totale==min(duree_totale, na.rm=T), arr.ind=T),1) #on retient le premier en cas d'Ã©galitÃ©
-  station_depart_cible <- rownames(duree_totale)[trajet_retenu$row] 
-  station_arrivee_cible <- colnames(duree_totale)[trajet_retenu$col] 
+  stationDepTrajet <<- rownames(duree_totale)[trajet_retenu$row] 
+  stationArrTrajet <<- colnames(duree_totale)[trajet_retenu$col] 
+  
+  #màj les stations de départ et d'arrivée sur la carte
+  setMapCircleDeparr(stationDepTrajet, "depart")
+  setMapCircleDeparr(stationArrTrajet, "arrivee")
+  
+  #tracé du trajet sur la carte :
+  traceTrajet()
   
 }
-
 
 
 

@@ -35,6 +35,7 @@ updStationFromAdresse <- function (adresse, deparr) {
   
 }
 
+#trace sur la carte le cercle de la stations de départ ou d'arrivée
 setMapCircleDeparr <- function (idStation, deparr) {
   leafletProxy("carteGeo") %>%
     addCircles(
