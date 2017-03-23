@@ -95,7 +95,7 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
 }
 
 
-#calcule la durÃ©e du trajet Ã  pieds entre une adresse et une suite de stations
+#calcule la durée du trajet à pieds entre une adresse et une suite de stations
 getTrajetsFromAdrToStations <- function(geoAdr, sta) {
   res <- data.frame(number=character(0), duree=numeric(0))
   for (i in 1:nrow(sta)) {
@@ -109,7 +109,7 @@ getTrajetsFromAdrToStations <- function(geoAdr, sta) {
 }
 
 
-#calcule en matrice la durÃ©e du trajet en vÃ©lo entre chaque station
+#calcule en matrice la duréee du trajet en vélo entre chaque station
 getTrajetsFromStationToStation <- function(sdep, sarr) {
   
   dt <- function(sd,sa) {
@@ -133,40 +133,50 @@ getTrajetsFromStationToStation <- function(sdep, sarr) {
 
 
 # ---
-# actualise les infos mÃ©tÃ©o (prÃ©cipitations, tempÃ©rature en fonction de l'heure souhaitÃ©e)
-# dt : l'heure souhaitÃ©e
+# actualise les infos météo (précipitations, température en fonction de l'heure souhaitée)
+# dt : l'heure souhaitée
 # ---
-# renvoit un data frame avec la prÃ©cipitation et la tempÃ©rature (et fixe les mÃªmes infos en variable globale)
+# renvoit un data frame avec la précipitation et la température (et fixe les mêmes infos en variable globale)
 # ---
 getMeteo <- function(dt) {
   
   Sys.setenv(DARKSKY_API_KEY = apiKeyDarksky)
   
-  #rÃ©cupÃ©ration de la mÃ©tÃ©o disponible
-  tm <- get_current_forecast(as.numeric(getLat(geoParis)),
-                             as.numeric(getLon(geoParis)),
-                             units="si",language = "fr")
+  #récupération de la météo disponible
+  res <- tryCatch(
+    tm <- get_current_forecast(as.numeric(getLat(geoParis)),
+                               as.numeric(getLon(geoParis)),
+                               units="si",language = "fr"),
+    error=function(e) {
+      message("erreur dans l'accès à l'API météo")
+      return(1)
+      },
+    warning=function(w) {message("alerte dans l'accès à l'API météo")}
+  )
   
-  #filtrage sur l'heure courante ainsi que sur les deux premiÃ¨res heures disponibles
-  v <- c("time","precipIntensity","temperature")
-  meteo <- data.frame()
-  meteo <- rbind.data.frame(meteo, as.data.frame(tm$currently[,v]))
-  meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[1,v]))
-  meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[2,v]))
-
-  #on retient la mÃ©tÃ©o la plus proche de l'heure souhaitÃ©e  
-  meteo <- meteo[which.min(abs(meteo$time - dt)),]
+  if (res==1) meteo <- NA
+  else {
+    #filtrage sur l'heure courante ainsi que sur les deux premières heures disponibles
+    v <- c("time","precipIntensity","temperature")
+    meteo <- data.frame()
+    meteo <- rbind.data.frame(meteo, as.data.frame(tm$currently[,v]))
+    meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[1,v]))
+    meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[2,v]))
+    
+    #on retient la météo la plus proche de l'heure souhaitée  
+    meteo <- meteo[which.min(abs(meteo$time - dt)),]
+  }
   
   #fixe variables globales
-  meteoPrecipitations <<- meteo$precipIntensity
-  meteoTemperature <<- meteo$temperature
+  meteoPrecipitations <<- ifelse(is.na(meteo),NA,meteo$precipIntensity)
+  meteoTemperature <<- ifelse(is.na(meteo),NA,meteo$temperature)
   
   return(meteo)
   
 }
 
 
-#renvoit la tempÃ©rature d'un objet mÃ©tÃ©o
+#renvoit la tempÃ©rature d'un objet météo
 getTemp <- function(meteo) {
   return(meteo[1])
 }

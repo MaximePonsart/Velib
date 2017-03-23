@@ -1,4 +1,4 @@
-#m?j les stations de proximit? en fonction des adresses saisies
+#màj les stations de proximité en fonction des adresses saisies
 updStationFromAdresse <- function (adresse, deparr) {
   
   adresseGeo <- geocode(adresse, output="latlona")
@@ -83,10 +83,10 @@ observeEvent(input$stationArrivee,{
 })
 
 observeEvent(input$go,{
-  #mÃ j mÃ©tÃ©o
+  #màj météo
   getMeteo(dtTrajet)
   
-  #coming very soon dÃ©clenchement du traitement
+  #coming very soon déclenchement du traitement
   #goCalcTrajet()
 })
 
@@ -100,7 +100,7 @@ observeEvent(input$goCtrlDep,{
 
 observeEvent(input$goCtrlArr,{
   if(input$goCtrlArr > 0){
-    #acquisition de la position gÃ©o + positionnement carte :
+    #acquisition de la position géo + positionnement carte :
     if (input$adresseArrivee != "") {
       updStationFromAdresse(input$adresseArrivee,"arrivee")
     }
@@ -108,5 +108,20 @@ observeEvent(input$goCtrlArr,{
 })
 
 observeEvent(input$horizon,{
-  dtTrajet <<- Sys.time() + as.numeric(input$horizon)*60
+  dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee)) + as.numeric(input$horizon)*60
 })
+
+observeEvent(input$dateSimulee,{
+  dateSimulee <<- as.Date(input$dateSimulee)
+})
+
+observeEvent(input$hSimulee, {
+  heureSimulee <<- paste0(input$hSimulee,":",strsplit(heureSimulee,":")[[1]][2])
+  dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee))
+})
+
+observeEvent(input$mSimulee, {
+  heureSimulee <<- paste0(strsplit(heureSimulee,":")[[1]][1],":",input$mSimulee)
+  dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee))
+})
+

@@ -40,7 +40,8 @@ output$parcoursDetail <- renderText({
 })
 
 output$parcoursDateHeure <- renderText({
-  input$horizon
+  #input$horizon
+  input$go
   s <- "Heure de départ : "
   s <- paste0(s, dtTrajet)
 })
