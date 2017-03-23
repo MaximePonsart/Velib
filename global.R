@@ -9,7 +9,7 @@ loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosp
 options(shiny.trace=TRUE)
 options(xtable.include.rownames=F)
 
-#inclusion de fonctions g√©n√©riques
+#inclusion de fonctions generiques
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
 source("src/trajet.R", local = TRUE)$value
@@ -20,16 +20,16 @@ source("src/trajet.R", local = TRUE)$value
 #palette pour la carte
 ColorPal <- colorNumeric(scales::seq_gradient_pal(low = "#132B43", high = "#56B1F7", space = "Lab"), domain = c(0,1))
 
-#API key DarkSky et variables m√©t√©o (pr√©cipitations, temp√©rature)
+#API key DarkSky et variables meteo (precipitations, temperature)
 apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
 
 #API key Google Direction
 apiKeyGoogleDirection <- "AIzaSyA6A8jEGpG3__YDEIZngB5x_t8K12g_v7s"
 
-#Coordonn√©es de Paris
+#Coordonnees de Paris
 geoParis <- "48.863,2.35"
 
-#fichier jeu de donn√©es pour les dispos V√©lib
+#fichier jeu de donnees pour les dispos Velib
 fStation <- "data/stations-velib-disponibilites-en-temps-reel.csv"
 
 #fichier liste des monuments de Paris
@@ -38,7 +38,7 @@ fMonuments <- "data/monuments_paris.txt"
 #fichier matrice des distances stations
 fMatDistanceStation <- "data/mDistanceStation.Rda"
 
-#fichier du modËle de prÈvision (Random Forest, aka 'Serious")
+#fichier du modele de prevision (Random Forest, aka 'Serious")
 fModRandomForest <- "data/modRandomForest.RDS"
 
 #data frame des stations
@@ -50,23 +50,25 @@ stations_actives_nom <- NULL
 #----------------------------------------------------------------------------------------
 # initialisation des variables globales
 
-dtTrajet <<- NULL # date-heure du trajet
+dateSimulee <<- as.Date("2017-02-01")
+heureSimulee <<- "05:00"
+dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee)) # date-heure du trajet
 
-geoAdrDepart <<- NULL # adresse de dÈpart au format "lat,lon"
-geoAdrArrivee <<- NULL # idem pour adresse d'arrivÈe
-geoStaDepTrajet <<- NULL #idem pour la station de dÈpart
-geoStaArrTrajet <<- NULL #idem pour la station d'arrivÈe
+geoAdrDepart <<- NULL # adresse de depart au format "lat,lon"
+geoAdrArrivee <<- NULL # idem pour adresse d'arrivee
+geoStaDepTrajet <<- NULL #idem pour la station de depart
+geoStaArrTrajet <<- NULL #idem pour la station d'arrivee
 
-stationDepTrajet <<- NULL # la station de dÈpart retenue pour le trajet
-stationArrTrajet <<- NULL # idem pour la station d'arrivÈe
+stationDepTrajet <<- NULL # la station de depart retenue pour le trajet
+stationArrTrajet <<- NULL # idem pour la station d'arrivee
 
-modele <<- "happy" # mod√®le statistique de pr√©vision
-meteoPrecipitations <<- NULL # pr√©cipitations m√©t√©o de l'heure cible
-meteoTemperature <<- NULL # temp√©rature m√©t√©o de l'heure cible
+modele <<- "happy" # modele statistique de prevision
+meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
+meteoTemperature <<- NA # temperature meteo de l'heure cible
 
 #----------------------------------------------------------------------------------------
 
-# r√©cup√©ration des stations :
+# recuperation des stations :
 stations<-read.csv(fStation, row.names=1, sep=";", fileEncoding = "UTF-8", stringsAsFactors = T)
 stations$position <- as.character(stations$position)
 #stations$status <- as.factor(stations$status)
@@ -96,10 +98,10 @@ if (!exists(o) && file.exists(fMatDistanceStation)) {
 }
 rm(o)
 
-### r√©cup√©ration des monuments
+### recuperation des monuments
 monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "UTF-8"))
 
-### chargement du modËle statistique de prÈvision
+### chargement du modele statistique de prevision
 #modele_RF<-readRDS(file=fModRandomForest)
-#(‡ tester avant activation)
+#(a tester avant activation)
 
