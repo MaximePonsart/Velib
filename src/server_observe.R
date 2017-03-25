@@ -1,3 +1,20 @@
+
+# trace le trajet du parcours sur la carte
+# df : data frame calculé par l'API Google Direction
+traceTrajet <- function () {
+  
+  # appel de l'API
+  df_marche_dep <- setGoogleTrajet(geoAdrDepart, geoStaDepTrajet, "walking")
+  df_velo <- setGoogleTrajet(geoStaDepTrajet, geoStaArrTrajet, "bicycling")
+  df_marche_arr <- setGoogleTrajet(geoStaArrTrajet, geoAdrArrivee, "walking")
+  
+  leafletProxy("carteGeo") %>%
+    addPolylines(data = df_marche_dep, lat = ~lat, lng = ~lon) %>%
+    addPolylines(data = df_velo, lat = ~lat, lng = ~lon) %>%
+    addPolylines(data = df_marche_arr, lat = ~lat, lng = ~lon)
+  
+}
+
 #màj les stations de proximité en fonction des adresses saisies
 updStationFromAdresse <- function (adresse, deparr) {
   
@@ -26,7 +43,7 @@ updStationFromAdresse <- function (adresse, deparr) {
                   inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
                   value=adresseClean)
   
-  #sauvegarde coordonn?es en variable globale :
+  #sauvegarde coordonnées en variable globale :
   geoAdr <- paste(latitude, longitude, sep=",")
   if (deparr=="depart")
     geoAdrDepart <<- geoAdr
@@ -86,8 +103,16 @@ observeEvent(input$go,{
   #màj météo
   getMeteo(dtTrajet)
   
-  #coming very soon déclenchement du traitement
-  #goCalcTrajet()
+  #calcul du parcours optimal
+  goCalcTrajet()
+  
+  #màj les stations de départ et d'arrivée sur la carte
+  setMapCircleDeparr(stationDepTrajet, "depart")
+  setMapCircleDeparr(stationArrTrajet, "arrivee")
+  
+  #tracé du trajet sur la carte :
+  #traceTrajet()
+  
 })
 
 observeEvent(input$goCtrlDep,{

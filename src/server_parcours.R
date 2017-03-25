@@ -18,7 +18,7 @@ setTextDepArr <- function(deparr) {
     s <- paste(s,
                paste("(station)", stations[station,]$name, sep=" "),
                sep=ifelse(s=="","","\n"))
-  s <- ifelse(s!="", s, paste0("pas de choix pour le ", noChoix))
+  s <- ifelse(s!="", s, paste0("pas de choix pour ", noChoix))
   return(s)
 }
 
@@ -37,18 +37,27 @@ output$parcoursArrivee <- renderText({
 output$parcoursDetail <- renderText({
   #d <- gdist.total(rbind(rev(getLatLon(geoAdrDepart)), (stations[input$stationDepart,]$position)
   #s <- paste("Distance géo entre adresse et station de départ ", )
+  input$go
+  s <- ""
+  s <- paste0(s, "Station de départ retenue : ", stationDepTrajet, "\n")
+  s <- paste0(s, "Station d'arrivée retenue : ", stationArrTrajet, "\n")
+  s <- paste0(s, "Durée du parcours : ", dureeTrajet, "\n")
+  
 })
 
 output$parcoursDateHeure <- renderText({
-  #input$horizon
   input$go
-  s <- "Heure de départ : "
-  s <- paste0(s, dtTrajet)
+  isolate({
+    s <- "Heure de départ : "
+    s <- paste0(s, dtTrajet)
+  })
+  return(s)
 })
 
 output$parcoursMeteo <- renderText({
   input$go
   s <- ""
-  s <- paste0(s, "Température : ", meteoTemperature,"\n")
-  s <- paste0(s, "Précipitations : ", meteoPrecipitations,"\n")
+  s <- paste0(s, "Température : ", meteoTemperature, "\n")
+  s <- paste0(s, "Précipitations : ", meteoPrecipitations, "\n")
+  return(s)
 })

@@ -21,22 +21,6 @@ setGoogleTrajet <- function (d, a, m) {
   
 }
 
-# trace le trajet du parcours sur la carte
-# df : data frame calculé par l'API Google Direction
-traceTrajet <- function () {
-  
-# appel de l'API
-  df_marche_dep <- setGoogleTrajet(geoAdrDepart, geoStaDepTrajet, "walking")
-  df_velo <- setGoogleTrajet(geoStaDepTrajet, geoStaArrTrajet, "bicycling")
-  df_marche_arr <- setGoogleTrajet(geoStaArrTrajet, geoAdrArrivee, "walking")
-  
-  leafletProxy("carteGeo") %>%
-    addPolylines(data = df_marche_dep, lat = ~lat, lng = ~lon) %>%
-    addPolylines(data = df_velo, lat = ~lat, lng = ~lon) %>%
-    addPolylines(data = df_marche_arr, lat = ~lat, lng = ~lon)
-  
-}
-
 
 #additionne des délais de trajet ligne avec des dÃ©lais de trajet matrice
 # df : data frame (trajet ligne)
@@ -50,16 +34,21 @@ getSommeDateDuree <- function(df, mat, dir, dim) {
   var <- ifelse(dim=="duree", "duree", "date_heure")
   
   m <- matrix(nrow=nrow(mat), ncol=ncol(mat))
+  dimnames(m) <- dimnames(mat)
   if (dir=="ligne") {
     for (i in 1:nrow(mat)) {
-      m <- rbind(m, mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)])
+      #m <- rbind(m, mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)])
+      m[i,] <- mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)]
     }
   }
   else { # "colonne"
     for (i in 1:ncol(mat))
-      m <- cbind(m, mat[i,]*coef + df[df$number==colnames(mat)[i],c(var)])
+      #m <- cbind(m, mat[i,]*coef + df[df$number==colnames(mat)[i],c(var)])
+      m[,i] <- mat[,i]*coef + df[df$number==colnames(mat)[i],c(var)]
   }
-    
+
+#  m <- as.POSIXct(m,origin="1970-01-01")
+  
   return(m)
   
 }
@@ -137,7 +126,7 @@ getTrajetsFromStationToStation <- function(sdep, sarr) {
       warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
       finally = {
         message(paste(res$status, res$error_message))
-        if (dt$status=="CONNECTION_ERROR") return(NA)
+        if (all(res$status=="CONNECTION_ERROR")) return(NA)
       }
     )
     return(res)
@@ -171,12 +160,12 @@ getMeteo <- function(dt) {
                                units="si",language = "fr"),
     error=function(e) {
       message("erreur dans l'accès à l'API météo")
-      return(1)
+      return(NA)
       },
     warning=function(w) {message("alerte dans l'accès à l'API météo")}
   )
   
-  if (res==1) meteo <- NA
+  if (all(is.na(res))) meteo <- NA
   else {
     #filtrage sur l'heure courante ainsi que sur les deux premières heures disponibles
     v <- c("time","precipIntensity","temperature")
@@ -190,8 +179,8 @@ getMeteo <- function(dt) {
   }
   
   #fixe variables globales
-  meteoPrecipitations <<- ifelse(is.na(meteo),NA,meteo$precipIntensity)
-  meteoTemperature <<- ifelse(is.na(meteo),NA,meteo$temperature)
+  meteoPrecipitations <<- ifelse(all(is.na(meteo)),NA,meteo$precipIntensity)
+  meteoTemperature <<- ifelse(all(is.na(meteo)),NA,meteo$temperature)
   
   return(meteo)
   
@@ -222,7 +211,7 @@ goCalcTrajet <- function() {
   
   #récupération de la météo
   meteo <- getMeteo(dtTrajet)
-  if (is.na(meteo)) message("!impossible de calculer la météo")
+  if (all(is.na(meteo))) message("!impossible de calculer la météo")
   
   #récupération heure de départ
   #dtTrajet
@@ -238,7 +227,7 @@ if (all(is.na(duree_marche_depart$duree))) {
   
   #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
-  if (is.na(velos_dispos)) {
+  if (all(is.na(velos_dispos))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
@@ -277,17 +266,10 @@ if (all(is.na(duree_marche_depart$duree))) {
   duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <- NA
   
   #résultat final : le trajet de parcours dont la durée est la plus faible
-  duree_min <- min(duree_totale, na.rm=T)
-  trajet_retenu <- head(which(duree_totale==min(duree_totale, na.rm=T), arr.ind=T),1) #on retient le premier en cas d'égalité
-  stationDepTrajet <<- rownames(duree_totale)[trajet_retenu$row] 
-  stationArrTrajet <<- colnames(duree_totale)[trajet_retenu$col] 
-  
-  #màj les stations de départ et d'arrivée sur la carte
-  setMapCircleDeparr(stationDepTrajet, "depart")
-  setMapCircleDeparr(stationArrTrajet, "arrivee")
-  
-  #tracé du trajet sur la carte :
-  traceTrajet()
+  dureeTrajet <<- min(duree_totale, na.rm=T)
+  trajet_retenu <- head(which(duree_totale==dureeTrajet, arr.ind=T),1) #on retient le premier en cas d'égalité
+  stationDepTrajet <<- rownames(duree_totale)[trajet_retenu[,"row"]]
+  stationArrTrajet <<- colnames(duree_totale)[trajet_retenu[,"col"]]
   
 }
 
