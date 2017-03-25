@@ -108,19 +108,19 @@ getDistanceGeoStations <- function(s1, s2) {
   return(d)
 }
 
-#convertit une coordonnée chaéne en vecteur (lat,lon)
+#convertit une coordonnée chaîne en vecteur (lat,lon)
 # "1.12,2.33" => ("1.12","2.33")
 getLatLon <- function(geo) {
   return(setNames(strsplit(geo, split=",")[[1]],c("lat","lon")))
 }
 
-#renvoit la latitude d'une coordonnée chaéne
+#renvoit la latitude d'une coordonnée chaîne
 # "1.12,2.33" => 1.12
 getLat <- function(geo) {
   return(as.numeric(strsplit(geo, split=",")[[1]][1]))
 }  
 
-#renvoit la longitude d'une coordonnée chaéne
+#renvoit la longitude d'une coordonnée chaîne
 # "1.12,2.33" => 2.33
 getLon <- function(geo) {
   return(as.numeric(strsplit(geo, split=",")[[1]][2]))

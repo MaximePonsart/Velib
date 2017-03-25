@@ -38,12 +38,12 @@ traceTrajet <- function () {
 }
 
 
-#additionne des dÃ©lais de trajet ligne avec des dÃ©lais de trajet matrice
+#additionne des délais de trajet ligne avec des dÃ©lais de trajet matrice
 # df : data frame (trajet ligne)
-# mat : matrice de durÃ©es
+# mat : matrice de durées
 # dir : direction d'appariement ("ligne" ou "colonne")
-# dim : dimension de la somme ("duree" : durÃ©e + durÃ©e, "date" : date + durÃ©e)
-# rÃ©sultat : la matrice rÃ©sultant de la somme
+# dim : dimension de la somme ("duree" : durée + durée, "date" : date + durée)
+# résultat : la matrice résultant de la somme
 getSommeDateDuree <- function(df, mat, dir, dim) {
   
   coef <- ifelse(dim=="duree", 1, 60)
@@ -65,14 +65,14 @@ getSommeDateDuree <- function(df, mat, dir, dim) {
 }
   
 
-# calcule la prÃ©vision du nombre de vÃ©los ou parkings disponibles
+# calcule la prévision du nombre de vélos ou parkings disponibles
 #---
 # sta : la station (id)
-# dateheure : la date-heure de prÃ©vision
-# mode : la variable Ã  prÃ©voir, "bike" pour vÃ©lo et "stand" pour parking
-# mÃ©tÃ©o : la mÃ©tÃ©o
+# dateheure : la date-heure de prévision
+# mode : la variable à prévoir, "bike" pour vélo et "stand" pour parking
+# météo : la météo
 #---
-# renvoit un data frame avec pour chaque station (id) la prÃ©vision calculÃ©e
+# renvoit un data frame avec pour chaque station (id) la prévision calculée
 #---
 getPrevDispo <- function(sta, dateheure, meteo, mode) {
   
@@ -99,10 +99,21 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
 getTrajetsFromAdrToStations <- function(geoAdr, sta) {
   res <- data.frame(number=character(0), duree=numeric(0))
   for (i in 1:nrow(sta)) {
-    dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
-               privkey="", clean=FALSE, add_date='today',
-               verbose=FALSE, travel_mode="walking",
-               units="metric")
+    t <- tryCatch(
+      dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
+                       privkey="", clean=FALSE, add_date='today',
+                       verbose=FALSE, travel_mode="walking",
+                       units="metric"),
+      error=function(e) {
+        message("!erreur dans l'accès à l'API Google drive_time")
+        return(1)
+      },
+      warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
+      finally = {
+        message(paste(dt$status, dt$error_message))
+        if (dt$status=="CONNECTION_ERROR") return(NA)
+      }
+    )
     res <- rbind(res, data.frame(number=sta[i,]$number, duree=dt$time_mins))
   }
   return(res)
@@ -113,11 +124,22 @@ getTrajetsFromAdrToStations <- function(geoAdr, sta) {
 getTrajetsFromStationToStation <- function(sdep, sarr) {
   
   dt <- function(sd,sa) {
-    res <- drive_time(address=sd,
-                      dest=sa,
-                      auth="standard_api", privkey="", clean=FALSE, add_date='today',
-                      verbose=FALSE, travel_mode="bicycling",
-                      units="metric")
+    t <- tryCatch(
+      res <- drive_time(address=sd,
+                        dest=sa,
+                        auth="standard_api", privkey="", clean=FALSE, add_date='today',
+                        verbose=FALSE, travel_mode="bicycling",
+                        units="metric"),
+      error=function(e) {
+        message("!erreur dans l'accès à l'API Google drive_time")
+        return(1)
+      },
+      warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
+      finally = {
+        message(paste(res$status, res$error_message))
+        if (dt$status=="CONNECTION_ERROR") return(NA)
+      }
+    )
     return(res)
   }
   
@@ -176,13 +198,13 @@ getMeteo <- function(dt) {
 }
 
 
-#renvoit la tempÃ©rature d'un objet météo
+#renvoit la température d'un objet météo
 getTemp <- function(meteo) {
   return(meteo[1])
 }
 
 
-#renvoit les prÃ©cipitations d'un objet mÃ©tÃ©o
+#renvoit les précipitations d'un objet météo
 getPrecip <- function(meteo) {
   return(meteo[2])
 }
@@ -190,50 +212,73 @@ getPrecip <- function(meteo) {
 
 goCalcTrajet <- function() {
   
-  #rÃ©cupÃ©ration des 5 stations les plus proches depuis l'adresse dÃ©part
+  if(is.na(geoAdrDepart) || is.na(geoAdrArrivee)) return(1)
+  
+  #récupération des 5 stations les plus proches depuis l'adresse départ
   s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrDepart), "classement", 5)
   
-  #idem pour l'adresse d'arrivÃ©e
+  #idem pour l'adresse d'arrivée
   s_arrivee <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
   
-  #rÃ©cupÃ©ration de la mÃ©tÃ©o
+  #récupération de la météo
   meteo <- getMeteo(dtTrajet)
+  if (is.na(meteo)) message("!impossible de calculer la météo")
   
-  #rÃ©cupÃ©ration heure de dÃ©part
-  dtTrajet
+  #récupération heure de départ
+  #dtTrajet
   
-  #calcul de la durÃ©e du trajet pÃ©destre entre l'adresse de dÃ©part et les stations proches
+  #calcul de la durée du trajet pédestre entre l'adresse de départ et les stations proches
   duree_marche_depart <- getTrajetsFromAdrToStations(geoAdrDepart, s_depart)
-  dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de dÃ©part depuis les stations
+if (all(is.na(duree_marche_depart$duree))) {
+    message("!impossible de calculer les distances")
+    return(1)
+  }
+  dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
                                    date_heure=duree_marche_depart$duree*60+dtTrajet) 
   
-  #calcul des prÃ©visions de vÃ©los dispos sur les stations de dÃ©part Ã  l'heure de dÃ©part
+  #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
+  if (is.na(velos_dispos)) {
+    message("!impossible de calculer les prévisions")
+    return(1)
+  }
   
-  #calcul de la durÃ©e des trajets en vÃ©los entre les stations de dÃ©part et d'arrivÃ©e
+  #calcul de la durée des trajets en vélos entre les stations de départ et d'arrivée
   duree_velo_trajets <- getTrajetsFromStationToStation(s_depart, s_arrivee)
+  if (all(is.na(duree_velo_trajets))) {
+    message("!impossible de calculer les durées de trajet")
+    return(1)
+  }
   
-  #calcul de la prÃ©vision des parkings dispos sur les stations d'arrivÃ©e
-  dt_stations_arrivee <- getSommeDateDuree(dt_stations_depart, #date-heure d'arrivÃ©e aux stations
+  #calcul de la prévision des parkings dispos sur les stations d'arrivée
+  dt_stations_arrivee <- getSommeDateDuree(dt_stations_depart, #date-heure d'arrivée aux stations
                                            duree_velo_trajets,
                                            "ligne", "date")
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
+  if (is.na(parkings_dispos)) {
+    message("!impossible de calculer les prévisions")
+    return(1)
+  }
   
-  #calcul de la durÃ©e du trajet pÃ©destre entre l'adresse d'arrivÃ©e et les stations proches
+  #calcul de la durée du trajet pédestre entre l'adresse d'arrivée et les stations proches
   duree_marche_arrivee <- getTrajetsFromAdrToStations(geoAdrArrivee, s_arrivee)
+  if (all(is.na(duree_marche_arrivee))) {
+    message("!impossible de calculer les durées de trajet")
+    return(1)
+  }
   
-  #calcul de la durÃ©e totale
+  #calcul de la durée totale
   duree_totale <- getSommeDateDuree(duree_marche_depart,
                                     getSommeDateDuree(duree_marche_arrivee, duree_velo_trajets, "colonne", "duree"),
                                     "ligne", "duree")
   
-  #retrait des stations dont les prÃ©visions de dispo (vÃ©lo ou parking) sont nulles
+  #retrait des stations dont les prévisions de dispo (vélo ou parking) sont nulles
   duree_totale[rownames(duree_totale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <- NA
   duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <- NA
   
-  #résultat final : le trajet de parcours dont la durÃ©e est la plus faible
+  #résultat final : le trajet de parcours dont la durée est la plus faible
   duree_min <- min(duree_totale, na.rm=T)
-  trajet_retenu <- head(which(duree_totale==min(duree_totale, na.rm=T), arr.ind=T),1) #on retient le premier en cas d'Ã©galitÃ©
+  trajet_retenu <- head(which(duree_totale==min(duree_totale, na.rm=T), arr.ind=T),1) #on retient le premier en cas d'égalité
   stationDepTrajet <<- rownames(duree_totale)[trajet_retenu$row] 
   stationArrTrajet <<- colnames(duree_totale)[trajet_retenu$col] 
   
