@@ -56,15 +56,19 @@ dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee)) # date-heure du traje
 
 geoAdrDepart <<- NA # adresse de depart au format "lat,lon"
 geoAdrArrivee <<- NA # idem pour adresse d'arrivee
-geoStaDepTrajet <<- NULL #idem pour la station de depart
-geoStaArrTrajet <<- NULL #idem pour la station d'arrivee
+geoStaDepTrajet <<- NA #idem pour la station de depart
+geoStaArrTrajet <<- NA #idem pour la station d'arrivee
 
-stationDepTrajet <<- NULL # la station de depart retenue pour le trajet
-stationArrTrajet <<- NULL # idem pour la station d'arrivee
+stationDepTrajet <<- NA # la station de depart retenue pour le trajet
+stationArrTrajet <<- NA # idem pour la station d'arrivee
+
+dureeTrajet <<- NA # la durée calculee pour le trajet retenu
 
 modele <<- "happy" # modele statistique de prevision
+
 meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
+getMeteo(dtTrajet)
 
 #----------------------------------------------------------------------------------------
 
@@ -76,7 +80,7 @@ stations$position <- as.character(stations$position)
 v <- do.call('rbind',strsplit(stations$position,',',fixed=TRUE))
 stations$longitude <- as.numeric(v[,2])
 stations$latitude <- as.numeric(v[,1])
-rm(v, position)
+rm(v)
 
 #toilettage des noms des stations :
 stations$number <- rownames(stations)
