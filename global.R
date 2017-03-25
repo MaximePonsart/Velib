@@ -54,8 +54,8 @@ dateSimulee <<- as.Date("2017-02-01")
 heureSimulee <<- "05:00"
 dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee)) # date-heure du trajet
 
-geoAdrDepart <<- NULL # adresse de depart au format "lat,lon"
-geoAdrArrivee <<- NULL # idem pour adresse d'arrivee
+geoAdrDepart <<- NA # adresse de depart au format "lat,lon"
+geoAdrArrivee <<- NA # idem pour adresse d'arrivee
 geoStaDepTrajet <<- NULL #idem pour la station de depart
 geoStaArrTrajet <<- NULL #idem pour la station d'arrivee
 
