@@ -23,8 +23,6 @@ setTextDepArr <- function(deparr) {
 }
 
 output$parcoursDepart <- renderText({
-  # if (input$stationDepart != "0" && input$stationArrivee != "0")
-  #     getDistanceGeoStations(input$stationDepart, input$stationArrivee)
   input$goCtrlDep
   return(setTextDepArr("depart"))
 })
@@ -35,13 +33,15 @@ output$parcoursArrivee <- renderText({
 })
 
 output$parcoursDetail <- renderText({
-  #d <- gdist.total(rbind(rev(getLatLon(geoAdrDepart)), (stations[input$stationDepart,]$position)
-  #s <- paste("Distance géo entre adresse et station de départ ", )
   input$go
   s <- ""
-  s <- paste0(s, "Station de départ retenue : ", stationDepTrajet, "\n")
-  s <- paste0(s, "Station d'arrivée retenue : ", stationArrTrajet, "\n")
-  s <- paste0(s, "Durée du parcours : ", dureeTrajet, "\n")
+  s <- paste0(s, ifelse(!is.na(stationDepTrajet),
+                        paste0("Station de départ retenue : ", stations[stationDepTrajet,]$name),
+                        paste0("Pas de station de départ")),"\n")
+  s <- paste0(s, ifelse(!is.na(stationArrTrajet),
+                        paste0("Station d'arrivée retenue : ", stations[stationArrTrajet,]$name),
+                        paste0("Pas de station d'arrivée")),"\n")
+  s <- paste0(s, "Durée du parcours : ", ifelse(is.na(dureeTrajet), "-", paste0(dureeTrajet, " min")),"\n")
   
 })
 

@@ -12,9 +12,9 @@ traceTrajet <- function () {
   df_marche_arr <- setGoogleTrajet(geoStaArrTrajet, geoAdrArrivee, "walking")
   
   leafletProxy("carteGeo") %>%
-    addPolylines(data = df_marche_dep, lat = ~lat, lng = ~lon) %>%
-    addPolylines(data = df_velo, lat = ~lat, lng = ~lon) %>%
-    addPolylines(data = df_marche_arr, lat = ~lat, lng = ~lon)
+    addPolylines(data = df_marche_dep, lat = ~lat, lng = ~lon, layerId="walk_dep") %>%
+    addPolylines(data = df_velo, lat = ~lat, lng = ~lon, layerId="bicycle") %>%
+    addPolylines(data = df_marche_arr, lat = ~lat, lng = ~lon, layerId="walk_arr")
   
 }
 
@@ -36,7 +36,6 @@ updStationFromAdresse <- function (adresse, deparr) {
   
   #calcul de la station la plus proche et maj UI :
   s <- getProchesStations(latitude, longitude, "classement", 1)$number
-  #setMapCircleDeparr(s, deparr)
   if (deparr=="depart") {
     stationDepSel <<- NA
     if (input$stationDepart!="0")
@@ -48,10 +47,6 @@ updStationFromAdresse <- function (adresse, deparr) {
       updateSelectInput(session, inputId ="stationArrivee", selected=0)
   }
   setMapCircleDeparr(stations[s,]$position, deparr)
-  
-  # updateSelectInput(session,
-  #                   inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
-  #                   selected=0)
   
   #maj l'adresse clean :
   adresseClean <- paste(head(strsplit(adresseGeo[1,"address"],",")[[1]],-1),collapse=",")
@@ -70,12 +65,9 @@ updStationFromAdresse <- function (adresse, deparr) {
 
 #trace sur la carte le cercle de la stations de départ ou d'arrivée
 setMapCircleDeparr <- function (geo, deparr) {
-#setMapCircleDeparr <- function (idStation, deparr) {
   leafletProxy("carteGeo") %>%
     addCircles(
-      color=ifelse(deparr=="depart","orange","green"),
-#      lng=stations[idStation,]$longitude,
-#      lat=stations[idStation,]$latitude,
+      color=ifelse(deparr=="depart","darkviolet","green"),
       lng=getLon(geo),
       lat=getLat(geo),
       layerId=as.vector(deparr),
@@ -91,7 +83,6 @@ observeEvent(input$carteGeo_shape_click,{
   eventIsArrivee <- event$id==input$stationArrivee || event$id=="arrivee"
   
   cible <- ifelse(eventIsArrivee, input$stationArrivee, event$id)
-#  setMapCircleDeparr(cible, "depart")
   setMapCircleDeparr(stations[cible,]$position, "depart")
   updateSelectInput(session, inputId = "stationDepart", selected=cible)
   stationDepSel <<- cible
@@ -106,8 +97,6 @@ observeEvent(input$carteGeo_shape_click,{
 
 observeEvent(input$stationsProx,{
   print("***2")
-  # if (input$stationDepart != "0") setMapCircleDeparr(input$stationDepart, "depart")
-  # if (input$stationArrivee != "0") setMapCircleDeparr(input$stationArrivee, "arrivee")
   if (input$stationDepart != "0")
     setMapCircleDeparr(stations[input$stationDepart,]$position, "depart")
   else

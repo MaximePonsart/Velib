@@ -1,18 +1,27 @@
 tabPanel("trajet", icon=icon("bicycle"),
          
-         h2("Temps"),
-         verbatimTextOutput(outputId = "parcoursDateHeure"),
+  fluidRow(
+   column(width=6, h2("Temps")),
+   column(width=6, h2("Météo"))
+  ),
+  
+  fluidRow(
+   column(width=6, verbatimTextOutput(outputId = "parcoursDateHeure")),
+   column(width=6, verbatimTextOutput(outputId = "parcoursMeteo"))
+  ),
+
          
-         h2("Météo"),
-         verbatimTextOutput(outputId = "parcoursMeteo"),
-         
-         h2("Départ"),
-         verbatimTextOutput(outputId = "parcoursDepart"),
-         
-         h2("Arrivée"),
-         verbatimTextOutput(outputId = "parcoursArrivee"),
-         
-         h2("Détail"),
-         verbatimTextOutput(outputId = "parcoursDetail")
+  fluidRow(
+    column(width=6, h2("Départ")),
+    column(width=6, h2("Arrivée"))
+  ),
+  
+  fluidRow(
+    column(width=6, verbatimTextOutput(outputId = "parcoursDepart")),
+    column(width=6, verbatimTextOutput(outputId = "parcoursArrivee"))
+  ),
+
+  h2("Détail"),
+  verbatimTextOutput(outputId = "parcoursDetail")
          
 )
