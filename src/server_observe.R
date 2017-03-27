@@ -3,6 +3,9 @@
 # df : data frame calculé par l'API Google Direction
 traceTrajet <- function () {
   
+  geoStaDepTrajet <- stations[stationDepTrajet,]$position
+  geoStaArrTrajet <- stations[stationArrTrajet,]$position
+  
   # appel de l'API
   df_marche_dep <- setGoogleTrajet(geoAdrDepart, geoStaDepTrajet, "walking")
   df_velo <- setGoogleTrajet(geoStaDepTrajet, geoStaArrTrajet, "bicycling")
@@ -111,7 +114,7 @@ observeEvent(input$go,{
   setMapCircleDeparr(stationArrTrajet, "arrivee")
   
   #tracé du trajet sur la carte :
-  #traceTrajet()
+  traceTrajet()
   
 })
 

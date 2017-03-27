@@ -142,79 +142,44 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
   
   if (mode=="bike")
     res <- data.frame(number=character(0), available_bikes=numeric(0))
-  else # mode=="parking"
+  else # mode=="stand"
     res <- data.frame(number=character(0), available_bike_stands=numeric(0))
   
   for (i in 1:nrow(sta)) {
     p <- getPrev(sta[i,], dateheure, meteo)
-    res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
+    #res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
+    res <- rbind(res, c(sta[i,]$number, p))
   }
+  
+  if (mode=="bike")
+    res <- setNames(res, c("number","available_bikes"))
+  else
+    res <- setNames(res,c("number","available_bike_stands"))
+  
   return(res)
+  
 }
 
 
 #calcule la durée du trajet à pieds entre une adresse et une suite de stations
 getTrajetsFromAdrToStations <- function(geoAdr, sta) {
-  #res <- data.frame(number=character(0), duree=numeric(0))
-  # for (i in 1:nrow(sta)) {
-    # t <- tryCatch(
-    #   dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
-    #                    privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
-    #                    verbose=FALSE, travel_mode="walking",
-    #                    units="metric"),
-    #   error=function(e) {
-    #     message("!erreur dans l'accès à l'API Google drive_time")
-    #     return(1)
-    #   },
-    #   warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
-    #   finally = {
-    #     message(paste(dt$status, dt$error_message))
-    #     if (dt$status=="CONNECTION_ERROR") return(NA)
-    #   }
-    # )
-  #   res <- rbind(res, data.frame(number=sta[i,]$number, duree=dt$time_mins))
-  # }
-  #return(res)
+
   getGoogleDistanceMatrix(from=geoAdr, to=sta$position, mode="walking")
+  
   return(cbind(data.frame(number=sta$number),
                subset(mGoogleDistanceMatrix,from==geoAdr & to %in% (sta$position), select=time_mins)))
+  
 }
 
 
 #calcule en matrice la durée du trajet en vélo entre chaque station
 getTrajetsFromStationToStation <- function(sdep, sarr) {
   
-  # dt <- function(sd,sa) {
-  #   t <- tryCatch(
-  #     res <- drive_time(address=sd,
-  #                       dest=sa,
-  #                       auth="standard_api", privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
-  #                       verbose=FALSE, travel_mode="bicycling",
-  #                       units="metric"),
-  #     error=function(e) {
-  #       message("!erreur dans l'accès à l'API Google drive_time")
-  #       return(1)
-  #     },
-  #     warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
-  #     finally = {
-  #       message(paste(res$status, res$error_message))
-  #       if (all(res$status=="CONNECTION_ERROR")) return(NA)
-  #     }
-  #   )
-  #   return(res)
-  # }
-  
   mat <- matrix(NA, nrow=nrow(sdep), ncol=nrow(sarr))
   dimnames(mat) <- list(sdep$number, sarr$number)
   
   for (i in 1:ncol(mat)) {
-    #mat[,i] <- dt(sdep$position,rep(sarr[i,]$position,nrow(mat)))$time_mins
     getGoogleDistanceMatrix(from=sdep$position, to=sarr[i,]$position, mode="bicycling")
-    #mat[,i] <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)
-    #sub <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)
-    #dimnames(sub) <- list(sdep$number, colnames(mat)[i])
-    #colnames(sub) <- colnames(mat)[i]
-    #rownames(sub) <- sdep$number
     mat[,i] <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)$time_mins
   }
     
@@ -307,7 +272,7 @@ goCalcTrajet <- function() {
   
   #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
-  if (all(is.na(velos_dispos))) {
+  if (all(is.na(velos_dispos$available_bikes))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
@@ -324,7 +289,7 @@ goCalcTrajet <- function() {
                                            duree_velo_trajets,
                                            "ligne", "date")
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
-  if (is.na(parkings_dispos)) {
+  if (all(is.na(parkings_dispos$available_bike_stands))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
