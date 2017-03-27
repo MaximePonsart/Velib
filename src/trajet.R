@@ -1,4 +1,78 @@
 
+# calcul de la durée du trajet entre les adresses de départ (from) et d'arivée (to)
+# les trajets résultent du produit cartésien entre départ et arrivée
+getGoogleDistanceMatrix <- function (from, to, mode) {
+  
+  #chargement du résultat des précédents requêtages (if any)
+  # mGoogleDistanceMatrix est un data frame avec pour schéma :
+  # from : coordonnée de départ au format "lat,lon"
+  # to: coordonnée d'arrivée au format "lat, lon"
+  # mode : le type de déplacement : "walking" ou "bicycling"
+  # time_mins : la durée du trajet en minutes (renvoyé par l'API)
+  # origin : l'adresse de départ (idem)
+  # destination : l'adresse d'arrivée (idem)
+  if (nrow(mGoogleDistanceMatrix)==0 && file.exists(fGoogleDistanceMatrix)) {
+    load(file=fGoogleDistanceMatrix)
+    mGoogleDistanceMatrix <<- mGoogleDistanceMatrix
+  }
+    
+  #restriction du requêtage aux seuls jeux non déjà requêtés
+  df0 <- expand.grid(from, to, mode) #df0 : data frame des trajets à estimer
+  df0 <- setNames(df0,c("from","to","mode"))
+  df <- data.frame(from=character(0), to=character(0), mode=character(0)) #df : df0 moins les trajets déjà requêtés
+  
+  m <- mGoogleDistanceMatrix[,c("from","to","mode")]
+  if (nrow(m)==0)
+    df <- df0
+  else {
+    for (i in 1:nrow(df0)) {
+      if (tail(duplicated(rbind(m,df0[i,])),1)>0)
+        next #déjà requêté
+      else
+        df <- rbind(df,df0[i,]) #nouveau trajet à requêter
+    }  
+  }
+  rm(m)
+  
+  df <- cbind(df,time_mins=rep(NA,nrow(df)),dist_num=rep(NA,nrow(df)),origin=rep(NA,nrow(df)),destination=rep(NA,nrow(df)))
+  
+  if (nrow(df)==0)
+    return(df[,c("from","to","mode","time_mins")])
+  else
+    #appel de l'API Google sur le seul jeu de requêtage restreint
+    #requêtage par pas de 25 max (limitation de l'API Google Distance Matrix)
+    for (i in seq(1,nrow(df),by=25)) {
+      t <- tryCatch({
+        suivant <- seq(i,nrow(df),by=25)[2]
+        if (is.na(suivant)) suivant <- nrow(df)+1
+        dt <- drive_time(address=as.character(df[seq(i,suivant-1),]$from),
+                         dest=as.character(df[seq(i,suivant-1),]$to),
+                         auth="standard_api",
+                         privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
+                         verbose=FALSE, travel_mode=mode,
+                         units="metric")},
+        error=function(e) {
+          message("!erreur dans l'accès à l'API Google drive_time")
+          return(1)
+        },
+        warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
+        finally = {
+          message(paste(dt$status, dt$error_message))
+          if (all(dt$status=="OK")) {
+            #récupérer la valeur dt$time_mins
+            df[seq(1,nrow(df)),c("time_mins","dist_num","origin","destination")] <- dt[,c("time_mins","dist_num","origin","destination")]
+            mGoogleDistanceMatrix <<- rbind(mGoogleDistanceMatrix, df)
+            save(mGoogleDistanceMatrix, file=fGoogleDistanceMatrix)
+            return(df[,c("from","to","mode","time_mins")])
+          }
+          else return(1)
+        }
+      )    
+    }
+  
+}
+
+
 #---
 # calcule le tracé trajet via l'API Google Direction
 # d : lieu de départ
@@ -22,7 +96,7 @@ setGoogleTrajet <- function (d, a, m) {
 }
 
 
-#additionne des délais de trajet ligne avec des dÃ©lais de trajet matrice
+#additionne des délais de trajet ligne avec des délais de trajet matrice
 # df : data frame (trajet ligne)
 # mat : matrice de durées
 # dir : direction d'appariement ("ligne" ou "colonne")
@@ -31,24 +105,19 @@ setGoogleTrajet <- function (d, a, m) {
 getSommeDateDuree <- function(df, mat, dir, dim) {
   
   coef <- ifelse(dim=="duree", 1, 60)
-  var <- ifelse(dim=="duree", "duree", "date_heure")
+  var <- ifelse(dim=="duree", "time_mins", "date_heure")
   
   m <- matrix(nrow=nrow(mat), ncol=ncol(mat))
   dimnames(m) <- dimnames(mat)
   if (dir=="ligne") {
-    for (i in 1:nrow(mat)) {
-      #m <- rbind(m, mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)])
+    for (i in 1:nrow(mat))
       m[i,] <- mat[i,]*coef + df[df$number==rownames(mat)[i],c(var)]
-    }
   }
   else { # "colonne"
     for (i in 1:ncol(mat))
-      #m <- cbind(m, mat[i,]*coef + df[df$number==colnames(mat)[i],c(var)])
       m[,i] <- mat[,i]*coef + df[df$number==colnames(mat)[i],c(var)]
   }
 
-#  m <- as.POSIXct(m,origin="1970-01-01")
-  
   return(m)
   
 }
@@ -86,58 +155,69 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
 
 #calcule la durée du trajet à pieds entre une adresse et une suite de stations
 getTrajetsFromAdrToStations <- function(geoAdr, sta) {
-  res <- data.frame(number=character(0), duree=numeric(0))
-  for (i in 1:nrow(sta)) {
-    t <- tryCatch(
-      dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
-                       privkey="", clean=FALSE, add_date='today',
-                       verbose=FALSE, travel_mode="walking",
-                       units="metric"),
-      error=function(e) {
-        message("!erreur dans l'accès à l'API Google drive_time")
-        return(1)
-      },
-      warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
-      finally = {
-        message(paste(dt$status, dt$error_message))
-        if (dt$status=="CONNECTION_ERROR") return(NA)
-      }
-    )
-    res <- rbind(res, data.frame(number=sta[i,]$number, duree=dt$time_mins))
-  }
-  return(res)
+  #res <- data.frame(number=character(0), duree=numeric(0))
+  # for (i in 1:nrow(sta)) {
+    # t <- tryCatch(
+    #   dt <- drive_time(address=geoAdr, dest=sta[i,]$position, auth="standard_api",
+    #                    privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
+    #                    verbose=FALSE, travel_mode="walking",
+    #                    units="metric"),
+    #   error=function(e) {
+    #     message("!erreur dans l'accès à l'API Google drive_time")
+    #     return(1)
+    #   },
+    #   warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
+    #   finally = {
+    #     message(paste(dt$status, dt$error_message))
+    #     if (dt$status=="CONNECTION_ERROR") return(NA)
+    #   }
+    # )
+  #   res <- rbind(res, data.frame(number=sta[i,]$number, duree=dt$time_mins))
+  # }
+  #return(res)
+  getGoogleDistanceMatrix(from=geoAdr, to=sta$position, mode="walking")
+  return(cbind(data.frame(number=sta$number),
+               subset(mGoogleDistanceMatrix,from==geoAdr & to %in% (sta$position), select=time_mins)))
 }
 
 
-#calcule en matrice la duréee du trajet en vélo entre chaque station
+#calcule en matrice la durée du trajet en vélo entre chaque station
 getTrajetsFromStationToStation <- function(sdep, sarr) {
   
-  dt <- function(sd,sa) {
-    t <- tryCatch(
-      res <- drive_time(address=sd,
-                        dest=sa,
-                        auth="standard_api", privkey="", clean=FALSE, add_date='today',
-                        verbose=FALSE, travel_mode="bicycling",
-                        units="metric"),
-      error=function(e) {
-        message("!erreur dans l'accès à l'API Google drive_time")
-        return(1)
-      },
-      warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
-      finally = {
-        message(paste(res$status, res$error_message))
-        if (all(res$status=="CONNECTION_ERROR")) return(NA)
-      }
-    )
-    return(res)
-  }
+  # dt <- function(sd,sa) {
+  #   t <- tryCatch(
+  #     res <- drive_time(address=sd,
+  #                       dest=sa,
+  #                       auth="standard_api", privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
+  #                       verbose=FALSE, travel_mode="bicycling",
+  #                       units="metric"),
+  #     error=function(e) {
+  #       message("!erreur dans l'accès à l'API Google drive_time")
+  #       return(1)
+  #     },
+  #     warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
+  #     finally = {
+  #       message(paste(res$status, res$error_message))
+  #       if (all(res$status=="CONNECTION_ERROR")) return(NA)
+  #     }
+  #   )
+  #   return(res)
+  # }
   
   mat <- matrix(NA, nrow=nrow(sdep), ncol=nrow(sarr))
   dimnames(mat) <- list(sdep$number, sarr$number)
   
-  for (i in 1:ncol(mat))
-    mat[,i] <- dt(sdep$position,rep(sarr[i,]$position,nrow(mat)))$time_mins
-  
+  for (i in 1:ncol(mat)) {
+    #mat[,i] <- dt(sdep$position,rep(sarr[i,]$position,nrow(mat)))$time_mins
+    getGoogleDistanceMatrix(from=sdep$position, to=sarr[i,]$position, mode="bicycling")
+    #mat[,i] <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)
+    #sub <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)
+    #dimnames(sub) <- list(sdep$number, colnames(mat)[i])
+    #colnames(sub) <- colnames(mat)[i]
+    #rownames(sub) <- sdep$number
+    mat[,i] <- subset(mGoogleDistanceMatrix, from %in% (sdep$position) & to==sarr[i,]$position, select=time_mins)$time_mins
+  }
+    
   return(mat)
   
 }
@@ -218,12 +298,12 @@ goCalcTrajet <- function() {
   
   #calcul de la durée du trajet pédestre entre l'adresse de départ et les stations proches
   duree_marche_depart <- getTrajetsFromAdrToStations(geoAdrDepart, s_depart)
-if (all(is.na(duree_marche_depart$duree))) {
+  if (all(is.na(duree_marche_depart$time_mins))) {
     message("!impossible de calculer les distances")
     return(1)
   }
   dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
-                                   date_heure=duree_marche_depart$duree*60+dtTrajet) 
+                                   date_heure=duree_marche_depart$time_mins*60+dtTrajet) 
   
   #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
