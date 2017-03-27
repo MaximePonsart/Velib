@@ -28,11 +28,12 @@ wellPanel(
   
   #délai de départ
   selectInput("horizon", "Je pars...",
-              choices = setNames(as.character(seq(from=0, to=60, by=20)),c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h"))),
-  
-  p(),
-  
+              choices = setNames(as.character(seq(from=0, to=60, by=20)),c("tout de suite!","dans 20 min", "dans 40 min", "dans 1 h")))
+ 
+, 
+  p()
+,  
   #soumission formulaire
   actionButton("go", "", icon=icon(name="bicycle"), class="btn-primary")
-
 )
+

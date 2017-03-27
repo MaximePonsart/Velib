@@ -50,7 +50,8 @@ getGoogleDistanceMatrix <- function (from, to, mode) {
                          auth="standard_api",
                          privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
                          verbose=FALSE, travel_mode=mode,
-                         units="metric")},
+                         units="metric")
+        },
         error=function(e) {
           message("!erreur dans l'accès à l'API Google drive_time")
           return(1)
@@ -246,31 +247,39 @@ getPrecip <- function(meteo) {
 
 goCalcTrajet <- function() {
   
-  if(is.na(geoAdrDepart) || is.na(geoAdrArrivee)) return(1)
-  
-  #récupération des 5 stations les plus proches depuis l'adresse départ
-  s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrDepart), "classement", 5)
-  
-  #idem pour l'adresse d'arrivée
-  s_arrivee <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
-  
   #récupération de la météo
   meteo <- getMeteo(dtTrajet)
   if (all(is.na(meteo))) message("!impossible de calculer la météo")
+
+  #récupération des 5 stations les plus proches depuis l'adresse départ & calcul du trajet pédestre
+  if (is.na(geoAdrDepart))
+    geoAdrDepart <<- stations[stationDepSel,]$position
   
-  #récupération heure de départ
-  #dtTrajet
-  
-  #calcul de la durée du trajet pédestre entre l'adresse de départ et les stations proches
+  s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrDepart), "classement", 5)
   duree_marche_depart <- getTrajetsFromAdrToStations(geoAdrDepart, s_depart)
+  
   if (all(is.na(duree_marche_depart$time_mins))) {
-    message("!impossible de calculer les distances")
+    message("!impossible de calculer les durées de trajet")
     return(1)
   }
+  
+    
+  #idem pour l'adresse d'arrivée
+  if (is.na(geoAdrArrivee))
+    geoAdrArrivee <<- stations[stationArrSel,]$position
+  
+  s_arrivee <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
+  duree_marche_arrivee <- getTrajetsFromAdrToStations(geoAdrArrivee, s_arrivee)
+  
+  if (all(is.na(duree_marche_arrivee$time_mins))) {
+    message("!impossible de calculer les durées de trajet")
+    return(1)
+  }
+  
+    
+  #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
                                    date_heure=duree_marche_depart$time_mins*60+dtTrajet) 
-  
-  #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
   if (all(is.na(velos_dispos$available_bikes))) {
     message("!impossible de calculer les prévisions")
@@ -291,13 +300,6 @@ goCalcTrajet <- function() {
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
   if (all(is.na(parkings_dispos$available_bike_stands))) {
     message("!impossible de calculer les prévisions")
-    return(1)
-  }
-  
-  #calcul de la durée du trajet pédestre entre l'adresse d'arrivée et les stations proches
-  duree_marche_arrivee <- getTrajetsFromAdrToStations(geoAdrArrivee, s_arrivee)
-  if (all(is.na(duree_marche_arrivee))) {
-    message("!impossible de calculer les durées de trajet")
     return(1)
   }
   

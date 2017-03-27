@@ -36,10 +36,23 @@ updStationFromAdresse <- function (adresse, deparr) {
   
   #calcul de la station la plus proche et maj UI :
   s <- getProchesStations(latitude, longitude, "classement", 1)$number
-  setMapCircleDeparr(s, deparr)
-  updateSelectInput(session,
-                    inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
-                    selected=s)
+  #setMapCircleDeparr(s, deparr)
+  if (deparr=="depart") {
+    stationDepSel <<- NA
+    if (input$stationDepart!="0")
+      updateSelectInput(session, inputId ="stationDepart", selected=0)
+  }
+  else { #arrivée
+    stationArrSel <<- NA
+    if (input$stationArrivee!="0")
+      updateSelectInput(session, inputId ="stationArrivee", selected=0)
+  }
+  setMapCircleDeparr(stations[s,]$position, deparr)
+  
+  # updateSelectInput(session,
+  #                   inputId = ifelse(deparr=="depart","stationDepart","stationArrivee"),
+  #                   selected=0)
+  
   #maj l'adresse clean :
   adresseClean <- paste(head(strsplit(adresseGeo[1,"address"],",")[[1]],-1),collapse=",")
   updateTextInput(session,
@@ -56,12 +69,15 @@ updStationFromAdresse <- function (adresse, deparr) {
 }
 
 #trace sur la carte le cercle de la stations de départ ou d'arrivée
-setMapCircleDeparr <- function (idStation, deparr) {
+setMapCircleDeparr <- function (geo, deparr) {
+#setMapCircleDeparr <- function (idStation, deparr) {
   leafletProxy("carteGeo") %>%
     addCircles(
       color=ifelse(deparr=="depart","orange","green"),
-      lng=stations[idStation,]$longitude,
-      lat=stations[idStation,]$latitude,
+#      lng=stations[idStation,]$longitude,
+#      lat=stations[idStation,]$latitude,
+      lng=getLon(geo),
+      lat=getLat(geo),
       layerId=as.vector(deparr),
       radius=input$stationsProx)
 }
@@ -75,8 +91,10 @@ observeEvent(input$carteGeo_shape_click,{
   eventIsArrivee <- event$id==input$stationArrivee || event$id=="arrivee"
   
   cible <- ifelse(eventIsArrivee, input$stationArrivee, event$id)
-  setMapCircleDeparr(cible, "depart")
+#  setMapCircleDeparr(cible, "depart")
+  setMapCircleDeparr(stations[cible,]$position, "depart")
   updateSelectInput(session, inputId = "stationDepart", selected=cible)
+  stationDepSel <<- cible
   
   if (eventIsArrivee) {
     leafletProxy("carteGeo") %>%
@@ -88,33 +106,60 @@ observeEvent(input$carteGeo_shape_click,{
 
 observeEvent(input$stationsProx,{
   print("***2")
-  if (input$stationDepart != "0") setMapCircleDeparr(input$stationDepart, "depart")
-  if (input$stationArrivee != "0") setMapCircleDeparr(input$stationArrivee, "arrivee")
+  # if (input$stationDepart != "0") setMapCircleDeparr(input$stationDepart, "depart")
+  # if (input$stationArrivee != "0") setMapCircleDeparr(input$stationArrivee, "arrivee")
+  if (input$stationDepart != "0")
+    setMapCircleDeparr(stations[input$stationDepart,]$position, "depart")
+  else
+    if (input$adresseDepart != "")
+      setMapCircleDeparr(input$adresseDepart, "depart")
+  
+  if (input$stationArrivee != "0")
+    setMapCircleDeparr(stations[input$stationArrivee,]$position, "arrivee")
+  else
+    if (input$adresseArrivee != "")
+      setMapCircleDeparr(input$adresseArrivee, "arrivee")
 })
 
 observeEvent(input$stationDepart,{
   print("***3")
-  if (input$stationDepart != "0") setMapCircleDeparr(input$stationDepart, "depart")
+  if (input$stationDepart != "0") {
+    setMapCircleDeparr(stations[input$stationDepart,]$position, "depart")
+    stationDepSel <<- input$stationDepart
+    geoAdrDepart <<- NA
+    updateTextInput(session, inputId = "adresseDepart", value="")
+  }
 })
 
 observeEvent(input$stationArrivee,{
   print("***4")
-  if (input$stationArrivee != "0") setMapCircleDeparr(input$stationArrivee, "arrivee")
+  if (input$stationArrivee != "0") {
+    setMapCircleDeparr(stations[input$stationArrivee,]$position, "arrivee")
+    stationArrSel <<- input$stationArrivee
+    geoAdrArrivee <<- NA
+    updateTextInput(session, inputId = "adresseArrivee", value="")
+  }
 })
 
 observeEvent(input$go,{
-  #màj météo
-  getMeteo(dtTrajet)
   
-  #calcul du parcours optimal
-  goCalcTrajet()
-  
-  #màj les stations de départ et d'arrivée sur la carte
-  setMapCircleDeparr(stationDepTrajet, "depart")
-  setMapCircleDeparr(stationArrTrajet, "arrivee")
-  
-  #tracé du trajet sur la carte :
-  traceTrajet()
+  #lancement du traitement si départ et arrivée sont renseignés
+  if ((!is.na(stationDepSel) || !is.na(geoAdrDepart)) && (!is.na(stationArrSel) || !is.na(geoAdrArrivee))) {
+    
+    #màj météo
+    getMeteo(dtTrajet)
+    
+    #calcul du parcours optimal
+    goCalcTrajet()
+    
+    #màj les stations de départ et d'arrivée sur la carte
+    setMapCircleDeparr(stations[stationDepTrajet,]$position, "depart")
+    setMapCircleDeparr(stations[stationArrTrajet,]$position, "arrivee")
+    
+    #tracé du trajet sur la carte :
+    traceTrajet()
+    
+  }
   
 })
 
