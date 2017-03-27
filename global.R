@@ -71,8 +71,8 @@ mGoogleDistanceMatrix <<- data.frame(from=character(0),
 
 geoAdrDepart <<- NA # adresse de depart au format "lat,lon"
 geoAdrArrivee <<- NA # idem pour adresse d'arrivee
-geoStaDepTrajet <<- NA #idem pour la station de depart
-geoStaArrTrajet <<- NA #idem pour la station d'arrivee
+# geoStaDepTrajet <<- NA #idem pour la station de depart
+# geoStaArrTrajet <<- NA #idem pour la station d'arrivee
 
 stationDepTrajet <<- NA # la station de depart retenue pour le trajet
 stationArrTrajet <<- NA # idem pour la station d'arrivee
