@@ -27,7 +27,7 @@ apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
 apiKeyGoogleDirection <- "AIzaSyA6A8jEGpG3__YDEIZngB5x_t8K12g_v7s"
 
 #API key Google Distance Matrix
-apiKeyGoogleDistanceMatrix <- "AIzaSyCCG6sFQXwJP3as-LU86iBO7Arbr2taxEw" #restreint sur la plage @IP 90.17.252.252/32
+apiKeyGoogleDistanceMatrix <- ""
 
 #Coordonnees de Paris
 geoParis <- "48.863,2.35"
