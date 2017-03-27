@@ -21,7 +21,7 @@ shinyUI(
              
              absolutePanel(top=-30, right=20,
                            sliderInput("stationsProx", "Stations + proches (en mètres)",
-                                       min = 200, max = 1000, value = 1, step=200, ticks=FALSE)),
+                                       min = 200, max = 1000, value = 600, step=200, ticks=FALSE)),
              
              tabsetPanel(
                
