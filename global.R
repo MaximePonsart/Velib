@@ -26,6 +26,9 @@ apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
 #API key Google Direction
 apiKeyGoogleDirection <- "AIzaSyA6A8jEGpG3__YDEIZngB5x_t8K12g_v7s"
 
+#API key Google Distance Matrix
+apiKeyGoogleDistanceMatrix <- "AIzaSyCCG6sFQXwJP3as-LU86iBO7Arbr2taxEw" #restreint sur la plage @IP 90.17.252.252/32
+
 #Coordonnees de Paris
 geoParis <- "48.863,2.35"
 
@@ -36,7 +39,10 @@ fStation <- "data/stations-velib-disponibilites-en-temps-reel.csv"
 fMonuments <- "data/monuments_paris.txt"
 
 #fichier matrice des distances stations
-fMatDistanceStation <- "data/mDistanceStation.Rda"
+fDistanceStation <- "data/mDistanceStation.Rda"
+
+#fichier temps de trajet deja calcules (offline Google drive_time)
+fGoogleDistanceMatrix <- "data/mGoogleDistanceMatrix.Rda"
 
 #fichier du modele de prevision (Random Forest, aka 'Serious")
 fModRandomForest <- "data/modRandomForest.RDS"
@@ -54,6 +60,15 @@ dateSimulee <<- as.Date("2017-02-01")
 heureSimulee <<- "05:00"
 dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee)) # date-heure du trajet
 
+mGoogleDistanceMatrix <<- data.frame(from=character(0),
+                                     to=character(0),
+                                     mode=character(0),
+                                     time_mins=numeric(0),
+                                     dist_num=numeric(0),
+                                     origin=character(0),
+                                     destination=character(0)
+                                     ) # durees de trajet deja calcules via API Google
+
 geoAdrDepart <<- NA # adresse de depart au format "lat,lon"
 geoAdrArrivee <<- NA # idem pour adresse d'arrivee
 geoStaDepTrajet <<- NA #idem pour la station de depart
@@ -62,7 +77,7 @@ geoStaArrTrajet <<- NA #idem pour la station d'arrivee
 stationDepTrajet <<- NA # la station de depart retenue pour le trajet
 stationArrTrajet <<- NA # idem pour la station d'arrivee
 
-dureeTrajet <<- NA # la durée calculee pour le trajet retenu
+dureeTrajet <<- NA # la duree calculee pour le trajet retenu
 
 modele <<- "happy" # modele statistique de prevision
 
@@ -89,18 +104,18 @@ stations_actives_nom <- stations[stations$status=="OPEN",c("number","name")]
 stations_actives_nom <- stations_actives_nom[order(stations_actives_nom$name),]
 stations_actives_nom <- rbind(c("0","(aucune)"), stations_actives_nom)
 
-#calcul de la distance entre les stations :
+#calcul de la distance geo entre les stations :
 o <- "mDistanceStation"
-if (!exists(o) && file.exists(fMatDistanceStation)) {
-  load(file=fMatDistanceStation)
+if (!exists(o) && file.exists(fDistanceStation)) {
+  load(file=fDistanceStation)
 } else if (!exists(o)) {
   s <- stations
   s$name <- rownames(s)
   mDistanceStation <- getMatrixDistanceStation(s, c("name","latitude","longitude"))
   rm(s)
-  save(mDistanceStation, file=fMatDistanceStation)
+  save(mDistanceStation, file=fDistanceStation)
 }
-rm(o)
+
 
 ### recuperation des monuments
 monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "UTF-8"))
