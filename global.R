@@ -10,6 +10,7 @@ options(shiny.trace=TRUE)
 options(xtable.include.rownames=F)
 
 #inclusion de fonctions generiques
+source("src/meteo.R", local = TRUE)$value
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
 source("src/trajet.R", local = TRUE)$value
@@ -85,7 +86,7 @@ dureeTrajet <<- NA # duree calculee pour le trajet retenu
 dureeTotale <<- NA # matrice des durees calculees
 dfParcours <<- NA # data frame des parcours calcules
 
-modele <<- "happy" # modele statistique de prevision
+modele <<- "none" # modele statistique de prevision
 
 meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
