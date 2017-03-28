@@ -3,7 +3,7 @@
 
 #chargement des packages requis
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway"))
+loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway","xtable"))
 
 #options diverses
 options(shiny.trace=TRUE)
@@ -70,7 +70,10 @@ mGoogleDistanceMatrix <<- data.frame(from=character(0),
                                      ) # durees de trajet deja calcules via API Google
 
 geoAdrDepart <<- NA # adresse de depart au format "lat,lon"
-geoAdrArrivee <<- NA # idem pour adresse d'arrivee
+geoAdrArrivee <<- NA # idem pour arrivee
+
+adrDepart <<- NA # adresse de depart au format adresse textuelle
+adrArrivee <<- NA # idem pour arrivee
 
 stationDepSel <<- NA # station de depart selectionnee
 stationArrSel <<- NA # idem pour la station d'arrivee
@@ -78,7 +81,9 @@ stationArrSel <<- NA # idem pour la station d'arrivee
 stationDepTrajet <<- NA # la station de depart retenue pour le trajet
 stationArrTrajet <<- NA # idem pour la station d'arrivee
 
-dureeTrajet <<- NA # la duree calculee pour le trajet retenu
+dureeTrajet <<- NA # duree calculee pour le trajet retenu
+dureeTotale <<- NA # matrice des durees calculees
+dfParcours <<- NA # data frame des parcours calcules
 
 modele <<- "happy" # modele statistique de prevision
 
