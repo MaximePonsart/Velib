@@ -140,7 +140,7 @@ observeEvent(input$go,{
   if ((!is.na(stationDepSel) || !is.na(geoAdrDepart)) && (!is.na(stationArrSel) || !is.na(geoAdrArrivee))) {
     
     #màj météo
-    getMeteo(dtTrajet)
+    #getMeteo(dtTrajet)
     
     #calcul du parcours optimal
     goCalcTrajet()
