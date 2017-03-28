@@ -10,7 +10,6 @@ tabPanel("trajet", icon=icon("bicycle"),
    column(width=6, verbatimTextOutput(outputId = "parcoursMeteo"))
   ),
 
-         
   fluidRow(
     column(width=6, h2("Départ")),
     column(width=6, h2("Arrivée"))
@@ -20,8 +19,23 @@ tabPanel("trajet", icon=icon("bicycle"),
     column(width=6, verbatimTextOutput(outputId = "parcoursDepart")),
     column(width=6, verbatimTextOutput(outputId = "parcoursArrivee"))
   ),
+  
+  fluidRow(
+    column(width=8, h2("Parcours retenu")),
+    column(width=4, h2("Matrice"))
+  ),
 
-  h2("Détail"),
-  verbatimTextOutput(outputId = "parcoursDetail")
+  fluidRow(
+    column(width=6, verbatimTextOutput(outputId = "parcoursDetail")),
+    column(width=6, uiOutput('matrix'))
+  ),
+  
+  fluidRow(
+    column(width=12, h2("Parcours"))
+  ),
+  
+  fluidRow(
+    column(width=12, dataTableOutput(outputId = "tabParcours"))
+  )
          
 )

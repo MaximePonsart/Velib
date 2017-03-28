@@ -3,8 +3,8 @@
 # df : data frame calculé par l'API Google Direction
 traceTrajet <- function () {
   
-  geoStaDepTrajet <- stations[stationDepTrajet,]$position
-  geoStaArrTrajet <- stations[stationArrTrajet,]$position
+  geoStaDepTrajet <<- stations[stationDepTrajet,]$position
+  geoStaArrTrajet <<- stations[stationArrTrajet,]$position
   
   # appel de l'API
   df_marche_dep <- setGoogleTrajet(geoAdrDepart, geoStaDepTrajet, "walking")
@@ -54,16 +54,20 @@ updStationFromAdresse <- function (adresse, deparr) {
                   inputId=ifelse(deparr=="depart","adresseDepart","adresseArrivee"),
                   value=adresseClean)
   
-  #sauvegarde coordonnées en variable globale :
+  #sauvegarde coordonnées et adresses en variable globale :
   geoAdr <- paste(latitude, longitude, sep=",")
-  if (deparr=="depart")
+  if (deparr=="depart") {
     geoAdrDepart <<- geoAdr
-  else
+    adrDepart <<- adresseClean
+  }
+  else {
     geoAdrArrivee <<- geoAdr
+    adrArrivee <<- adresseClean
+  }
   
 }
 
-#trace sur la carte le cercle de la stations de départ ou d'arrivée
+#trace sur la carte le cercle de la station de départ ou d'arrivée
 setMapCircleDeparr <- function (geo, deparr) {
   leafletProxy("carteGeo") %>%
     addCircles(

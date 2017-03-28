@@ -42,6 +42,7 @@ output$parcoursDetail <- renderText({
                         paste0("Station d'arrivée retenue : ", stations[stationArrTrajet,]$name),
                         paste0("Pas de station d'arrivée")),"\n")
   s <- paste0(s, "Durée du parcours : ", ifelse(is.na(dureeTrajet), "-", paste0(dureeTrajet, " min")),"\n")
+  s <- paste0(s, "dfParcours : ", as.character(nrow(dfParcours)))
   
 })
 
@@ -60,4 +61,26 @@ output$parcoursMeteo <- renderText({
   s <- paste0(s, "Température : ", meteoTemperature, "\n")
   s <- paste0(s, "Précipitations : ", meteoPrecipitations, "\n")
   return(s)
+})
+
+#restitution matrice
+output$matrix <- renderUI({
+  bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
+  M <- print(xtable(duree_totale, align=rep("c", ncol(duree_totale)+1)), 
+             floating=FALSE, tabular.environment="array", comment=FALSE, print.results=FALSE, include.rownames=T,
+             sanitize.colnames.function=bold,
+             sanitize.rownames.function=bold
+             )
+  html <- paste0("$$", M, "$$")
+  list(
+    withMathJax(HTML(html))
+  )
+})
+
+
+#restitution tableau des parcours
+output$tabParcours <- renderDataTable({
+  input$go
+  if (!is.na(dfParcours))
+    return(dfParcours)
 })

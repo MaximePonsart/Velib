@@ -1,4 +1,3 @@
-
 # calcul de la durée du trajet entre les adresses de départ (from) et d'arivée (to)
 # les trajets résultent du produit cartésien entre départ et arrivée
 getGoogleDistanceMatrix <- function (from, to, mode) {
@@ -148,7 +147,6 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
   
   for (i in 1:nrow(sta)) {
     p <- getPrev(sta[i,], dateheure, meteo)
-    #res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
     res <- rbind(res, c(sta[i,]$number, p))
   }
   
@@ -247,14 +245,49 @@ getPrecip <- function(meteo) {
 
 goCalcTrajet <- function() {
   
+  #tableau résultat
+  dfParcours <<- data.frame(
+    libemplacement=character(0),
+    typemplacement=factor(levels=c("station","adresse")),
+    idemplacement=character(0),
+    dateheure=numeric(0),
+    duree=numeric(0),
+    mode=factor(levels=c("walking","bicycling")),
+    available_bikes=numeric(0),
+    available_bike_stands=numeric(0),
+    idparcours=numeric(0), #concaténation geocodes depart-arrivée
+    typligne=factor(levels=c("lieu-depart","marche-depart","station-depart","velo-trajet","station-arrivee","marche-arrivee","lieu-arrivee"))
+  )
+  
+    
   #récupération de la météo
   meteo <- getMeteo(dtTrajet)
   if (all(is.na(meteo))) message("!impossible de calculer la météo")
 
-  #récupération des 5 stations les plus proches depuis l'adresse départ & calcul du trajet pédestre
-  if (is.na(geoAdrDepart))
+  #initialisation du parcours avec le point de départ
+  #---d1---
+  if (is.na(geoAdrDepart)) {
     geoAdrDepart <<- stations[stationDepSel,]$position
+    adrDepart <<- stations[stationDepSel,]$address
+  }
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="lieu-depart",
+                         libEmplacement=adrDepart,
+                         typEmplacement="adresse",
+                         idEmplacement=geoAdrDepart,
+                         dateheure=dtTrajet,
+                         duree=NA,
+                         mode=NA,
+                         available_bikes=NA,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f1---
+    
+  #récupération des 5 stations les plus proches depuis l'adresse départ & calcul du trajet pédestre
+  #---d2---
   s_depart <- getProchesStations(getLat(geoAdrDepart), getLon(geoAdrDepart), "classement", 5)
   duree_marche_depart <- getTrajetsFromAdrToStations(geoAdrDepart, s_depart)
   
@@ -263,11 +296,28 @@ goCalcTrajet <- function() {
     return(1)
   }
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="marche-depart",
+                         libEmplacement=NA,
+                         typEmplacement=NA,
+                         idEmplacement=NA,
+                         dateheure=NA,
+                         duree=duree_marche_depart$time_mins,
+                         mode="walking",
+                         available_bikes=NA,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f2---
     
   #idem pour l'adresse d'arrivée
-  if (is.na(geoAdrArrivee))
+  #---d3---
+  if (is.na(geoAdrArrivee)) {
     geoAdrArrivee <<- stations[stationArrSel,]$position
-  
+    adrArrivee <<- stations[stationArrSel,]$address
+  }
+
   s_arrivee <- getProchesStations(getLat(geoAdrArrivee), getLon(geoAdrArrivee), "classement", 5)
   duree_marche_arrivee <- getTrajetsFromAdrToStations(geoAdrArrivee, s_arrivee)
   
@@ -275,48 +325,131 @@ goCalcTrajet <- function() {
     message("!impossible de calculer les durées de trajet")
     return(1)
   }
-  
+  #---f3---
     
   #calcul des prévisions de vélos dispos sur les stations de départ à l'heure de départ
+  #---d4---
   dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
-                                   date_heure=duree_marche_depart$time_mins*60+dtTrajet) 
+                                   date_heure=duree_marche_depart$time_mins*60+dtTrajet)
+  
   velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
+  
   if (all(is.na(velos_dispos$available_bikes))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="station-depart",
+                         libEmplacement=s_depart$name,
+                         typEmplacement="station",
+                         idEmplacement=dt_stations_depart$number,
+                         dateheure=dt_stations_depart$date_heure,
+                         duree=NA,
+                         mode=NA,
+                         available_bikes=velos_dispos$available_bikes,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f4---
+  
   #calcul de la durée des trajets en vélos entre les stations de départ et d'arrivée
+  #---d5---
   duree_velo_trajets <- getTrajetsFromStationToStation(s_depart, s_arrivee)
   if (all(is.na(duree_velo_trajets))) {
     message("!impossible de calculer les durées de trajet")
     return(1)
   }
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="velo-trajet",
+                         libEmplacement=NA,
+                         typEmplacement=NA,
+                         idEmplacement=NA,
+                         dateheure=NA,
+                         duree=as.numeric(duree_velo_trajets),
+                         mode="bicycling",
+                         available_bikes=NA,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f5---
+  
   #calcul de la prévision des parkings dispos sur les stations d'arrivée
+  #---d6---
   dt_stations_arrivee <- getSommeDateDuree(dt_stations_depart, #date-heure d'arrivée aux stations
                                            duree_velo_trajets,
                                            "ligne", "date")
+  
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
+  
   if (all(is.na(parkings_dispos$available_bike_stands))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="station-arrivee",
+                         libEmplacement=rep(s_arrivee$name,5),
+                         typEmplacement="station",
+                         idEmplacement=rep(colnames(dt_stations_arrivee),5),
+                         dateheure=as.POSIXct(as.numeric(dt_stations_arrivee), origin="1970-01-01"),
+                         duree=NA,
+                         mode=NA,
+                         available_bikes=NA,
+                         available_bike_stands=rep(parkings_dispos$available_bike_stands,5),
+                         idparcours=seq(1,25)                      
+                       ))
+  
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="marche-arrivee",
+                         libEmplacement=NA,
+                         typEmplacement=NA,
+                         idEmplacement=NA,
+                         dateheure=NA,
+                         duree=duree_marche_arrivee$time_mins,
+                         mode="walking",
+                         available_bikes=NA,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f6---
+  
   #calcul de la durée totale
-  duree_totale <- getSommeDateDuree(duree_marche_depart,
+  #---d7---
+  duree_totale <<- getSommeDateDuree(duree_marche_depart,
                                     getSommeDateDuree(duree_marche_arrivee, duree_velo_trajets, "colonne", "duree"),
                                     "ligne", "duree")
   
+  dfParcours <<- rbind(dfParcours,
+                       data.frame(
+                         typligne="lieu-arrivee",
+                         libEmplacement=adrArrivee,
+                         typEmplacement="adresse",
+                         idEmplacement=geoAdrArrivee,
+                         dateheure=dtTrajet+as.numeric(duree_totale)*60,
+                         duree=NA,
+                         mode=NA,
+                         available_bikes=NA,
+                         available_bike_stands=NA,
+                         idparcours=seq(1,25)                      
+                       ))
+  #---f7---
+  
   #retrait des stations dont les prévisions de dispo (vélo ou parking) sont nulles
-  duree_totale[rownames(duree_totale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <- NA
-  duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <- NA
+  duree_totale[rownames(duree_totale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <<- NA
+  duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <<- NA
   
   #résultat final : le trajet de parcours dont la durée est la plus faible
   dureeTrajet <<- min(duree_totale, na.rm=T)
   trajet_retenu <- head(which(duree_totale==dureeTrajet, arr.ind=T),1) #on retient le premier en cas d'égalité
   stationDepTrajet <<- rownames(duree_totale)[trajet_retenu[,"row"]]
   stationArrTrajet <<- colnames(duree_totale)[trajet_retenu[,"col"]]
+  
   
 }
 
