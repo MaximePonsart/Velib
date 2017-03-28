@@ -22,6 +22,7 @@ shinyUI(
                source("src/ui_carte.R", local = TRUE)$value,
                source("src/ui_parcours.R", local = TRUE)$value,
                source("src/ui_detail.R", local = TRUE)$value,
+               source("src/ui_stats.R", local = TRUE)$value,
                source("src/ui_admin.R", local = TRUE)$value
                
              )
