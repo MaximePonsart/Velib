@@ -3,7 +3,7 @@
 
 #chargement des packages requis
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway","xtable"))
+loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway","xtable","DT"))
 
 #options diverses
 options(shiny.trace=TRUE)
