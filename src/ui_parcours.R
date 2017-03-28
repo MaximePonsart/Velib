@@ -1,8 +1,8 @@
 tabPanel("trajet", icon=icon("bicycle"),
          
   fluidRow(
-   column(width=6, h2("Temps")),
-   column(width=6, h2("Météo"))
+   column(width=6, h3("Temps")),
+   column(width=6, h3("Météo"))
   ),
   
   fluidRow(
@@ -11,8 +11,8 @@ tabPanel("trajet", icon=icon("bicycle"),
   ),
 
   fluidRow(
-    column(width=6, h2("Départ")),
-    column(width=6, h2("Arrivée"))
+    column(width=6, h3("Départ")),
+    column(width=6, h3("Arrivée"))
   ),
   
   fluidRow(
@@ -21,21 +21,29 @@ tabPanel("trajet", icon=icon("bicycle"),
   ),
   
   fluidRow(
-    column(width=8, h2("Parcours retenu")),
-    column(width=4, h2("Matrice"))
-  ),
-
-  fluidRow(
-    column(width=6, verbatimTextOutput(outputId = "parcoursDetail")),
-    column(width=6, uiOutput('matrix'))
-  ),
-  
-  fluidRow(
-    column(width=12, h2("Parcours"))
-  ),
-  
-  fluidRow(
-    column(width=12, dataTableOutput(outputId = "tabParcours"))
+    column(width=6, 
+           verticalLayout(
+             h3("Trajet"),
+             verbatimTextOutput(outputId = "parcoursDetail")
+           )
+    ),
+    column(width=6,
+#           conditionalPanel("input.go>0",uiOutput('matrix'))
+            uiOutput('matrix')
+    ),
+    
+    fluidRow(
+      column(width=3, h2("Parcours")),
+      column(width=9, selectInput(inputId="choixParcours", label="", choices=c("(aucun)")))
+    ),
+    
+    fluidRow(
+      column(width=12, 
+             conditionalPanel("input.go>0",DT::dataTableOutput(outputId = "tabParcours"),
+                              tags$style(type="text/css", "#tabParcours td:first-child {font-weight:bold;}"))
+             )
+    )
+    
   )
-         
+  
 )

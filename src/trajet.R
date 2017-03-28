@@ -252,7 +252,7 @@ goCalcTrajet <- function() {
     idemplacement=character(0),
     dateheure=numeric(0),
     duree=numeric(0),
-    mode=factor(levels=c("walking","bicycling")),
+    mode=factor(levels=c("departure","walking","getbike","bicycling","releasebike","arrival")),
     available_bikes=numeric(0),
     available_bike_stands=numeric(0),
     idparcours=numeric(0), #concaténation geocodes depart-arrivée
@@ -279,7 +279,7 @@ goCalcTrajet <- function() {
                          idEmplacement=geoAdrDepart,
                          dateheure=dtTrajet,
                          duree=NA,
-                         mode=NA,
+                         mode="departure",
                          available_bikes=NA,
                          available_bike_stands=NA,
                          idparcours=seq(1,25)                      
@@ -347,7 +347,7 @@ goCalcTrajet <- function() {
                          idEmplacement=dt_stations_depart$number,
                          dateheure=dt_stations_depart$date_heure,
                          duree=NA,
-                         mode=NA,
+                         mode="getbike",
                          available_bikes=velos_dispos$available_bikes,
                          available_bike_stands=NA,
                          idparcours=seq(1,25)                      
@@ -393,14 +393,14 @@ goCalcTrajet <- function() {
   dfParcours <<- rbind(dfParcours,
                        data.frame(
                          typligne="station-arrivee",
-                         libEmplacement=rep(s_arrivee$name,5),
+                         libEmplacement=as.character(sapply(s_arrivee$name,FUN=function(x){rep(x,5)})),
                          typEmplacement="station",
-                         idEmplacement=rep(colnames(dt_stations_arrivee),5),
+                         idEmplacement=as.character(sapply(colnames(dt_stations_arrivee),FUN=function(x){rep(x,5)})),
                          dateheure=as.POSIXct(as.numeric(dt_stations_arrivee), origin="1970-01-01"),
                          duree=NA,
-                         mode=NA,
+                         mode="releasebike",
                          available_bikes=NA,
-                         available_bike_stands=rep(parkings_dispos$available_bike_stands,5),
+                         available_bike_stands=as.character(sapply(parkings_dispos$available_bike_stands,FUN=function(x){rep(x,5)})),
                          idparcours=seq(1,25)                      
                        ))
   
@@ -411,7 +411,7 @@ goCalcTrajet <- function() {
                          typEmplacement=NA,
                          idEmplacement=NA,
                          dateheure=NA,
-                         duree=duree_marche_arrivee$time_mins,
+                         duree=as.numeric(sapply(duree_marche_arrivee$time_mins,FUN=function(x){rep(x,5)})),
                          mode="walking",
                          available_bikes=NA,
                          available_bike_stands=NA,
@@ -433,11 +433,20 @@ goCalcTrajet <- function() {
                          idEmplacement=geoAdrArrivee,
                          dateheure=dtTrajet+as.numeric(duree_totale)*60,
                          duree=NA,
-                         mode=NA,
+                         mode="arrival",
                          available_bikes=NA,
                          available_bike_stands=NA,
                          idparcours=seq(1,25)                      
                        ))
+  
+  dfParcours$typligne <<- factor(dfParcours$typligne, levels=c("lieu-depart","marche-depart","station-depart","velo-trajet","station-arrivee","marche-arrivee","lieu-arrivee"))
+  duree_parcours <- setNames(aggregate(duree~idparcours, dfParcours, sum), c("idparcours","dureeparcours")) #durée de chaque parcours
+  dfParcours <<- dfParcours[order(dfParcours$idparcours,dfParcours$typligne),]
+  dfParcours <<- merge(dfParcours, duree_parcours, by="idparcours")
+  # parcours <- parcours[order(parcours$dureeparcours,parcours$idparcours),
+  #                                 colnames(parcours)[!colnames(parcours) %in% c("dureeparcours")]]
+  dfParcours <<- dfParcours[order(dfParcours$dureeparcours,dfParcours$idparcours),]
+  dfParcours <<- dfParcours[order(dfParcours$idparcours, dfParcours$typligne),]
   #---f7---
   
   #retrait des stations dont les prévisions de dispo (vélo ou parking) sont nulles

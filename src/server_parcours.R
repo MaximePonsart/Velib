@@ -36,13 +36,12 @@ output$parcoursDetail <- renderText({
   input$go
   s <- ""
   s <- paste0(s, ifelse(!is.na(stationDepTrajet),
-                        paste0("Station de départ retenue : ", stations[stationDepTrajet,]$name),
+                        paste0("Station de départ retenue : (", stationDepTrajet, ") ", stations[stationDepTrajet,]$name),
                         paste0("Pas de station de départ")),"\n")
   s <- paste0(s, ifelse(!is.na(stationArrTrajet),
-                        paste0("Station d'arrivée retenue : ", stations[stationArrTrajet,]$name),
+                        paste0("Station d'arrivée retenue : (", stationArrTrajet, ") ", stations[stationArrTrajet,]$name),
                         paste0("Pas de station d'arrivée")),"\n")
   s <- paste0(s, "Durée du parcours : ", ifelse(is.na(dureeTrajet), "-", paste0(dureeTrajet, " min")),"\n")
-  s <- paste0(s, "dfParcours : ", as.character(nrow(dfParcours)))
   
 })
 
@@ -65,6 +64,10 @@ output$parcoursMeteo <- renderText({
 
 #restitution matrice
 output$matrix <- renderUI({
+  
+  input$go
+  if(is.na(dfParcours)) return
+  
   bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
   M <- print(xtable(duree_totale, align=rep("c", ncol(duree_totale)+1)), 
              floating=FALSE, tabular.environment="array", comment=FALSE, print.results=FALSE, include.rownames=T,
@@ -75,12 +78,31 @@ output$matrix <- renderUI({
   list(
     withMathJax(HTML(html))
   )
+  
 })
 
 
 #restitution tableau des parcours
-output$tabParcours <- renderDataTable({
+output$tabParcours <- DT::renderDataTable(options=list(paging=F, searching=F, pageLength=7, ordering=F, fixedHeader.footer=F, 
+                                                       bInfo=F, columnDefs = list(list(className = 'dt-center', targets = c(1,3:5))))
+                                          , rownames=c("départ","marcher vers station","prendre vélo","trajet vélo", "déposer vélo","marcher vers destination","arrivée")
+                                          ,{
   input$go
-  if (!is.na(dfParcours))
-    return(dfParcours)
+                                            
+  if (!is.na(dfParcours)) {
+    
+    res <- dfParcours[dfParcours$idparcours==input$choixParcours,
+                      c("dateheure","libEmplacement","duree","available_bikes","available_bike_stands")]
+    
+    # res$available_bikes <- as.numeric(res$available_bikes)
+    # res$available_bike_stands <- as.numeric(res$available_bike_stands)
+    res$duree <- sapply(res$duree, FUN=function(x){ifelse(is.na(x),"",paste0(trunc(x)," min ",trunc((x-floor(x))*60)," s"))})
+    res$dateheure <- strftime(res$dateheure, format="%Hh %M")
+    
+    res <- setNames(res, c("heure","emplacement","durée","vélos dispo","stands dispo"))
+    return(res)
+    
+  }
+    
 })
+

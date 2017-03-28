@@ -152,6 +152,16 @@ observeEvent(input$go,{
     #tracé du trajet sur la carte :
     traceTrajet()
     
+    #initialise l'onglet détail de parcours :
+    choix <- unique(dfParcours[order(dfParcours$dureeparcours),c("idparcours", "dureeparcours")])
+    #choixLib <- paste0("[",choix$idparcours,"] en ",
+    choixLib <- paste0("en ",
+                       sapply(choix$dureeparcours, FUN=function(x){paste0(trunc(x)," min ",trunc((x-floor(x))*60)," s")}))
+    choixLib[1]<-paste0(choixLib[1]," (le +rapide)")
+    updateSelectInput(session, inputId ="choixParcours",
+                      selected=unique(dfParcours[which(dfParcours$dureeparcours==min(dfParcours$dureeparcours)),]$idparcours),
+                      choices=setNames(choix$idparcours,choixLib))
+    
   }
   
 })
