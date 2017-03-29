@@ -200,3 +200,9 @@ observeEvent(input$mSimulee, {
   heureSimulee <<- paste0(strsplit(heureSimulee,":")[[1]][1],":",input$mSimulee)
   dtTrajet <<- as.POSIXct(paste0(dateSimulee, heureSimulee))
 })
+
+observeEvent(input$modele_stat, {
+  modele <<- input$modele_stat
+})
+
+

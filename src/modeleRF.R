@@ -99,13 +99,13 @@ location_dispo$fusion<-paste(location_dispo$annee,
                              location_dispo$mois,
                              location_dispo$heure,
                              location_dispo$jour_num,
-                             sep='')
+                             sep='-')
 
 meteo$fusion<-paste(meteo$annee,
                     meteo$mois,
                     meteo$heure,
                     meteo$jour_num,
-                    sep='')
+                    sep='-')
 
 
 locat_dispo<-left_join(location_dispo, 

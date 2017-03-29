@@ -11,7 +11,11 @@ getMeteo <- function(dt,mode) {
   
   #récupération de la météo disponible
   res <- tryCatch(
-    tm <- get_current_forecast(as.numeric(getLat(geoParis)),
+    # tm <- get_current_forecast(as.numeric(getLat(geoParis)),
+    #                            as.numeric(getLon(geoParis)),
+    #                            dt,
+    #                            units="si",language = "fr"),
+    tm <- get_forecast_for(as.numeric(getLat(geoParis)),
                                as.numeric(getLon(geoParis)),
                                dt,
                                units="si",language = "fr"),

@@ -137,7 +137,23 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
   getPrev <- function (s, dh, m) {
     if (modele=="none") return(1)
     if (modele=="random") return(sample(0:s$bike_stands,1))
-    #if (modele=="serious") return(...)
+    if (modele=="randomforest") {
+      message("*** modèle RF détecté ***")
+      if (is.na(oModele) && file.exists("fModRandomForest"))
+        oModele <<- readRDS(fModRandomForest)
+      if (is.na(oModele)) return(NA)
+      # #predict(oModele,dispo[-indextrain,-1])
+      # predict(oModele,
+      #         data.frame( #Ljour=, #factor 1 7
+      #                     #heure, #0 23
+      #                    #minute, # 0 20 40 60
+      #                    #temperature=c(), 
+      #                    #precipitations,
+      #                    #vacances=holiday 0 : holiday 1 : no holiday)
+      #           )
+      # #meteoPrecipitations
+      # #meteoTemperature
+    }
   }
   
   if (mode=="bike")
