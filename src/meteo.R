@@ -5,7 +5,7 @@
 # ---
 # renvoit un data frame avec la précipitation et la température (et fixe les mêmes infos en variable globale)
 # ---
-getMeteo <- function(dt) {
+getMeteo <- function(dt,mode) {
   
   Sys.setenv(DARKSKY_API_KEY = apiKeyDarksky)
   
@@ -24,23 +24,28 @@ getMeteo <- function(dt) {
   
   if (all(is.na(res))) meteo <- NA
   else {
-    #filtrage sur l'heure courante ainsi que sur les deux premières heures disponibles
-    v <- c("time","precipIntensity","temperature")
-    meteo <- data.frame()
-    meteo <- rbind.data.frame(meteo, as.data.frame(tm$currently[,v]))
-    meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[1,v]))
-    meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[2,v]))
-    
-    #on retient la météo la plus proche de l'heure souhaitée  
-    meteo <- meteo[which.min(abs(meteo$time - dt)),]
+    if (missing(mode) || mode!="full") {
+      #filtrage sur l'heure courante ainsi que sur les deux premières heures disponibles
+      v <- c("time","precipIntensity","temperature")
+      meteo <- data.frame()
+      meteo <- rbind.data.frame(meteo, as.data.frame(tm$currently[,v]))
+      meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[1,v]))
+      meteo <- rbind.data.frame(meteo, as.data.frame(tm$hourly[2,v]))
+      
+      #on retient la météo la plus proche de l'heure souhaitée  
+      meteo0 <- meteo[which.min(abs(meteo$time - dt)),]
+      
+      #fixe variables globales
+      meteoPrecipitations <<- ifelse(all(is.na(meteo0)),NA,meteo$precipIntensity)
+      meteoTemperature <<- ifelse(all(is.na(meteo0)),NA,meteo$temperature)
+      
+      return(meteo)
+    }
+    else { #mode full
+     return(tm) 
+    }
   }
-  
-  #fixe variables globales
-  meteoPrecipitations <<- ifelse(all(is.na(meteo)),NA,meteo$precipIntensity)
-  meteoTemperature <<- ifelse(all(is.na(meteo)),NA,meteo$temperature)
-  
-  return(meteo)
-  
+
 }
 
 

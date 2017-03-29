@@ -9,11 +9,30 @@ tabPanel("admin", icon=icon("lock"),
   ),
   
   #choix du modèle statistique
-  h2("Prévision stat"),
-  selectInput("modele_stat", "Modèle statistique :",
-             choices = setNames(c("random","happy","serious"),c("aléatoire","happy","serious")),
-             selected="happy")
+  h2("Calcul de prévisions"),
+  selectInput("modele_stat", "Modèle statistique",
+             choices = setNames(c("none","randomforest"),c("(aucun)","Random forest")),
+             selected="none"),
   
+  h2("Nouveau modèle Random forest"),
+  fluidRow(
+    column(width=4,
+           verticalLayout(
+             dateInput("periodeRF", "Période mensuelle",language="fr", format="mm/yyyy", min="2015-02-01", max=Sys.time()),
+             fluidRow(
+               column(width=8,HTML("données historiques à charger")),
+               column(width=4,actionButton('browse', 'Browse'))
+             )
+           )),
+    column(width=8,
+           verticalLayout(
+             #verbatimTextOutput("chosenPath", placeholder=T),
+             verbatimTextOutput("log", placeholder=T)
+             )        
+           )
+     
+    )
+    
   # h2("Activation API Google drive_time"),
   # checkboxInput("activeAPIGoogleDT","activation", value=F)
   

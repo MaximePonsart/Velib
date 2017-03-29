@@ -66,18 +66,20 @@ output$parcoursMeteo <- renderText({
 output$matrix <- renderUI({
   
   input$go
-  if(is.na(dfParcours)) return
+  if(is.na(dfParcours) || is.na(dureeTotale))
+    dureeTotale <- matrix(nrow=5, ncol=5)
   
   bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
-  M <- print(xtable(duree_totale, align=rep("c", ncol(duree_totale)+1)), 
+  M <- print(xtable(dureeTotale, align=rep("c", ncol(dureeTotale)+1)), 
              floating=FALSE, tabular.environment="array", comment=FALSE, print.results=FALSE, include.rownames=T,
              sanitize.colnames.function=bold,
              sanitize.rownames.function=bold
-             )
+  )
   html <- paste0("$$", M, "$$")
   list(
     withMathJax(HTML(html))
-  )
+  )  
+
   
 })
 
@@ -94,8 +96,6 @@ output$tabParcours <- DT::renderDataTable(options=list(paging=F, searching=F, pa
     res <- dfParcours[dfParcours$idparcours==input$choixParcours,
                       c("dateheure","libEmplacement","duree","available_bikes","available_bike_stands")]
     
-    # res$available_bikes <- as.numeric(res$available_bikes)
-    # res$available_bike_stands <- as.numeric(res$available_bike_stands)
     res$duree <- sapply(res$duree, FUN=function(x){ifelse(is.na(x),"",paste0(trunc(x)," min ",trunc((x-floor(x))*60)," s"))})
     res$dateheure <- strftime(res$dateheure, format="%Hh %M")
     

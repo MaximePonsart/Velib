@@ -365,7 +365,7 @@ goCalcTrajet <- function() {
   
   #calcul de la durée totale
   #---d7---
-  duree_totale <<- getSommeDateDuree(duree_marche_depart,
+  dureeTotale <<- getSommeDateDuree(duree_marche_depart,
                                     getSommeDateDuree(duree_marche_arrivee, duree_velo_trajets, "colonne", "duree"),
                                     "ligne", "duree")
   
@@ -375,7 +375,7 @@ goCalcTrajet <- function() {
                          libEmplacement=adrArrivee,
                          typEmplacement="adresse",
                          idEmplacement=geoAdrArrivee,
-                         dateheure=dtTrajet+as.numeric(duree_totale)*60,
+                         dateheure=dtTrajet+as.numeric(dureeTotale)*60,
                          duree=NA,
                          mode="arrival",
                          available_bikes=NA,
@@ -394,14 +394,14 @@ goCalcTrajet <- function() {
   #---f7---
   
   #retrait des stations dont les prévisions de dispo (vélo ou parking) sont nulles
-  duree_totale[rownames(duree_totale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <<- NA
-  duree_totale[,colnames(duree_totale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <<- NA
+  dureeTotale[rownames(dureeTotale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <<- NA
+  dureeTotale[,colnames(dureeTotale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <<- NA
   
   #résultat final : le trajet de parcours dont la durée est la plus faible
-  dureeTrajet <<- min(duree_totale, na.rm=T)
-  trajet_retenu <- head(which(duree_totale==dureeTrajet, arr.ind=T),1) #on retient le premier en cas d'égalité
-  stationDepTrajet <<- rownames(duree_totale)[trajet_retenu[,"row"]]
-  stationArrTrajet <<- colnames(duree_totale)[trajet_retenu[,"col"]]
+  dureeTrajet <<- min(dureeTotale, na.rm=T)
+  trajet_retenu <- head(which(dureeTotale==dureeTrajet, arr.ind=T),1) #on retient le premier en cas d'égalité
+  stationDepTrajet <<- rownames(dureeTotale)[trajet_retenu[,"row"]]
+  stationArrTrajet <<- colnames(dureeTotale)[trajet_retenu[,"col"]]
   
   
 }
