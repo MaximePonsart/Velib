@@ -48,7 +48,8 @@ fDistanceStation <- "data/mDistanceStation.Rda"
 fGoogleDistanceMatrix <- "data/mGoogleDistanceMatrix.Rda"
 
 #fichier du modele de prevision (Random Forest, aka 'Serious")
-fModRandomForest <- "data/modRandomForest.RDS"
+#fModRandomForest <- "data/modRandomForest.RDS"
+fModRandomForest <- "data/resultat.RDS"
 
 #data frame des stations
 stations <- NULL
@@ -88,7 +89,8 @@ dureeTrajet <<- NA # duree calculee pour le trajet retenu
 dureeTotale <<- NA # matrice des durees calculees
 dfParcours <<- NA # data frame des parcours calcules
 
-modele <<- "none" # modele statistique de prevision
+modele <<- "none" # reference du modele statistique de prevision
+oModele <<- NA # l'instance du modele
 
 meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
