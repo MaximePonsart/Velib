@@ -3,7 +3,8 @@
 
 #chargement des packages requis
 source("src/loadPackages.R", local = TRUE)$value
-loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky","googleway","xtable","DT"))
+loadPackages(c("leaflet","shiny","shinythemes","Imap","ggmap","placement","geosphere","darksky",
+               "googleway","xtable","DT","dplyr","randomForest","lubridate"))
 
 #options diverses
 options(shiny.trace=TRUE)
@@ -11,6 +12,7 @@ options(xtable.include.rownames=F)
 
 #inclusion de fonctions generiques
 source("src/meteo.R", local = TRUE)$value
+source("src/modeleRF.R", local = TRUE)$value
 source("src/getDispoStationTR.R", local = TRUE)$value
 source("src/calcDistanceStations.R", local = TRUE)$value
 source("src/trajet.R", local = TRUE)$value
@@ -92,6 +94,9 @@ meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
 getMeteo(dtTrajet)
 
+wlog <<- "" # messages logs des traitements en cours
+winput <<- NA # fichier de donnees en cours de traitement
+
 #----------------------------------------------------------------------------------------
 
 # recuperation des stations :
@@ -113,7 +118,7 @@ stations_actives_nom <- rbind(c("0","(aucune)"), stations_actives_nom)
 
 #calcul de la distance geo entre les stations :
 o <- "mDistanceStation"
-if (!exists(o) && file.exists(fDistanceStation)) {
+if (!exists(o) && s(fDistanceStation)) {
   load(file=fDistanceStation)
 } else if (!exists(o)) {
   s <- stations
@@ -130,4 +135,6 @@ monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "U
 ### chargement du modele statistique de prevision
 #modele_RF<-readRDS(file=fModRandomForest)
 #(a tester avant activation)
+
+
 
