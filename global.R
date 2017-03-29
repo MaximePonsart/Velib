@@ -118,7 +118,7 @@ stations_actives_nom <- rbind(c("0","(aucune)"), stations_actives_nom)
 
 #calcul de la distance geo entre les stations :
 o <- "mDistanceStation"
-if (!exists(o) && s(fDistanceStation)) {
+if (!exists(o) && file.exists(fDistanceStation)) {
   load(file=fDistanceStation)
 } else if (!exists(o)) {
   s <- stations
