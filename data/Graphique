@@ -1,0 +1,35 @@
+ #représentation graphique de la station par jour et par heure 
+  day_summary <- ddply(dispo,.(jour,heure,number),
+                       summarise, available_bikes = mean(available_bikes))
+  dev.off()
+  ggplot(dispo, aes(x = heure, y = available_bikes, colour = jour))+
+    geom_point(data = day_summary, aes(group=jour)) +
+    geom_line(data = day_summary, aes(group=jour))+
+    scale_x_discrete("Heure") +
+    scale_y_continuous("Velos disponibles") +
+    theme_minimal() +
+    facet_grid(facets = number ~ .)+
+    ggtitle("Nombre de velos disponibles par heure et par jour")
+  ggplotly()
+  
+  
+  #graphiques valeurs réelles et valeurs estimées
+  vr<-c(dispo[-indextrain,"available_bikes"])
+  vp<-predict(rf,dispo[-indextrain,-1])
+  tt<-data.frame(vr,vp)
+  
+  ggplot(tt, aes(x = vr, y = vp), color = "blue") +
+    geom_point() +
+    geom_segment(aes(x = 0, xend=50, y = 0,yend=50), color = "red")
+  ggplotly() 
+  
+  
+  #graphiques valeurs réelles et valeurs estimées pour le mois de février
+  vr_date<-loc_dispo[which(loc_dispo$number==station),c("available_bikes","date")]
+  vp_date<-predict(rf,loc_dispo[which(loc_dispo$number==station),-1])
+  tt_date<-data.frame(vr_date,vp_date)
+  
+  ggplot(tt_date, aes(x = date, y = available_bikes), color = "blue") +
+    geom_line() +
+    geom_line(aes(x = date, y = vp_date), color = "red")
+  ggplotly()
