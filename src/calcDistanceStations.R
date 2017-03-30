@@ -51,28 +51,6 @@ GeoDistanceInMetresMatrix <- function(df.geopoints){
   return(mat.distances)
 }
 
-############################################################################################################################
-
-
-#### calcul de la matrice de distance entre les stations
-# entrée :
-# ------
-# df: le data frame des stations
-# name : la variable du nom de station dans le data frame
-# lat : la variable de latitude
-# lon : la variable de longitude
-# -------
-# sortie : une matrice résumant la distance calculée entre chaque station
-# -------
-# ex. : stations <- data.frame(stations$Number, stations$Latitude, stations$Longitude)
-#       m <- getMatrixDistanceStation(stations, "Number", "Latitude", "Longitude")
-####
-getMatrixDistanceStation <- function(df, name_lat_lon) {
-  df2 <- df[, name_lat_lon]
-  names(df2) <- c("name","lat","lon")
-  distance <- round(GeoDistanceInMetresMatrix(df2)/1000, digits=1)
-  return(distance)
-}
 
 #### calcul des stations les plus proches d'un point géographique
 # entrée :
@@ -125,38 +103,5 @@ getLat <- function(geo) {
 getLon <- function(geo) {
   return(as.numeric(strsplit(geo, split=",")[[1]][2]))
 }
-
-#calcul de la matrice des durées de trajet entre stations (API Google drive_time)
-# getMatrixDureeTrajetStation <- function(profondeur) {
-# 
-#   s <- head(stations,profondeur)
-#   m <- matrix(nrow=nrow(s),ncol=nrow(s))
-#   dimnames(m) <- list(rownames(s), rownames(s))
-#   
-#   for (i in 1:ncol(m)) {
-# 
-#     t <- tryCatch(
-#       dt <- drive_time(address=s$position, dest=rep(s[i,]$position,nrow(s)), auth="standard_api",
-#                        privkey=apiKeyGoogleDistanceMatrix, clean=FALSE, add_date='today',
-#                        verbose=FALSE, travel_mode="bicycling",
-#                        units="metric"),
-#       error=function(e) {
-#         message("!erreur dans l'accès à l'API Google drive_time")
-#         return(1)
-#       },
-#       warning=function(w) {message("!alerte dans l'accès à l'API Google drive_time")},
-#       finally = {
-#         message(paste(dt$status, dt$error_message))
-#         if (all(dt$status=="CONNECTION_ERROR")) return(NA)
-#       }
-#     )
-#     
-#     m[,i] <- dt$time_mins
-#         
-#   }
-#   
-#   return(m)
-#   
-# }
 
 

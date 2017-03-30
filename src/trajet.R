@@ -132,27 +132,22 @@ getSommeDateDuree <- function(df, mat, dir, dim) {
 #---
 # renvoit un data frame avec pour chaque station (id) la prévision calculée
 #---
-getPrevDispo <- function(sta, dateheure, meteo, mode) {
+getPrevDispo <- function(sta, dateheure, mode) {
   
-  getPrev <- function (s, dh, m) {
+  getPrev <- function (s, dh) {
     if (modele=="none") return(1)
     if (modele=="random") return(sample(0:s$bike_stands,1))
     if (modele=="randomforest") {
       message("*** modèle RF détecté ***")
-      if (is.na(oModele) && file.exists("fModRandomForest"))
-        oModele <<- readRDS(fModRandomForest)
-      if (is.na(oModele)) return(NA)
-      # #predict(oModele,dispo[-indextrain,-1])
-      # predict(oModele,
-      #         data.frame( #Ljour=, #factor 1 7
-      #                     #heure, #0 23
-      #                    #minute, # 0 20 40 60
-      #                    #temperature=c(), 
-      #                    #precipitations,
-      #                    #vacances=holiday 0 : holiday 1 : no holiday)
-      #           )
-      # #meteoPrecipitations
-      # #meteoTemperature
+      res<-predict(modeleRF,
+              data.frame(format(dateSimulee,"%w"), #jour (factor 1 à 7)
+                         format(heureSimulee,"%H"), #heure (0 à 23)
+                         c(0,20,40)[which.min(abs(rep(as.numeric(format(heureSimulee,"%M")),3)-c(0,20,40)))], #minute (0, 20, 40)
+                         meteoTemperature, #température
+                         meteoPrecipitations, #precipitations,
+                         conges[conges$date==format(Sys.Date(), "%d/%m/%y"),]$vacance #congés scolaires : 0 oui, 1 non
+              ))
+      return(res)
     }
   }
   
@@ -162,7 +157,7 @@ getPrevDispo <- function(sta, dateheure, meteo, mode) {
     res <- data.frame(number=character(0), available_bike_stands=numeric(0))
   
   for (i in 1:nrow(sta)) {
-    p <- getPrev(sta[i,], dateheure, meteo)
+    p <- getPrev(sta[i,], dateheure)
     res <- rbind(res, c(sta[i,]$number, p))
   }
   
@@ -221,7 +216,7 @@ goCalcTrajet <- function() {
   
     
   #récupération de la météo
-  meteo <- getMeteo(dtTrajet)
+  meteo <- getMeteo(round(as.numeric(dtTrajet)),"time")
   if (all(is.na(meteo))) message("!impossible de calculer la météo")
 
   #initialisation du parcours avec le point de départ
@@ -292,7 +287,7 @@ goCalcTrajet <- function() {
   dt_stations_depart <- data.frame(number=duree_marche_depart$number, #date-heure de départ depuis les stations
                                    date_heure=duree_marche_depart$time_mins*60+dtTrajet)
   
-  velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, meteo, "bike")
+  velos_dispos <- getPrevDispo(s_depart, dt_stations_depart, "bike")
   
   if (all(is.na(velos_dispos$available_bikes))) {
     message("!impossible de calculer les prévisions")
@@ -343,7 +338,7 @@ goCalcTrajet <- function() {
                                            duree_velo_trajets,
                                            "ligne", "date")
   
-  parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, meteo, "stand")
+  parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, "stand")
   
   if (all(is.na(parkings_dispos$available_bike_stands))) {
     message("!impossible de calculer les prévisions")
