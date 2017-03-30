@@ -43,7 +43,7 @@ library(ggplot2)
 library(plotly)
 
 
-#importation des données météo
+#importation des donnÃ©es mÃ©tÃ©o
 
 setwd("//telemaque/users/CEPE-S2-02/Bureau")
 #setwd("C:/Users/sevdr/Desktop/data scientist/Projet velib")
@@ -77,7 +77,7 @@ HistoDT <- do.call('rbind',Histo_velib)
 rm(Histo_velib)
 
 #creation d'une table unique 
-#format date pour l'année 
+#format date pour l'annÃ©e 
 
 HistoDT$date <- as.POSIXct(HistoDT$download_date, origin="1970-01-01")
 HistoDT$jour<- weekdays(as.Date(HistoDT$date))
@@ -98,10 +98,10 @@ rm(HistoDT)
 location_dispo<-location_dispo[order(location_dispo$number,location_dispo$date),]
 #variable retard
 meteo<-readRDS(file="//telemaque/users/CEPE-S2-02/Bureau/meteo.RDS")
-tt<-meteo[which(meteo$mois=="février" & meteo$annee =="2017"),]
+tt<-meteo[which(meteo$mois=="fÃ©vrier" & meteo$annee =="2017"),]
 
 ############################################################################################################################
-#introduction des données météo
+#introduction des donnÃ©es mÃ©tÃ©o
 location_dispo$fusion<-paste(location_dispo$annee,
                              location_dispo$mois,
                              location_dispo$heure,
@@ -123,7 +123,7 @@ locat_dispo<-left_join(location_dispo,
 locat_dispo$fusion<-NULL
 
 ############################################################################################################################
-#introduction des données vacances
+#introduction des donnÃ©es vacances
 
 locat_dispo$mois_num<- as.numeric(format(locat_dispo$date, "%m"))
 locat_dispo$fusion<-paste(locat_dispo$jour_num,
@@ -188,10 +188,10 @@ levels(loc_dispo$vacance)[2]<-"holidays"
 
 loc_dispo$atemp<-as.factor(loc_dispo$atemp)
 
-#création d'une liste des stations
+#crÃ©ation d'une liste des stations
 list_station <-c(unique(loc_dispo[,"number"]))
 
-#Modele 1 : modele avec les variable initiale sans prise en compte des valeur décalées
+#Modele 1 : modele avec les variable initiale sans prise en compte des valeur dÃ©calÃ©es
 RES <- data.frame(list_station,  
                   mse=1,
                   risque=1,
@@ -207,7 +207,7 @@ for(i in 1 : length(list_station))
   print(station)
   dispo<-loc_dispo[which(loc_dispo$number==station),]
   
-  #élaboration du modèle
+  #Ã©laboration du modÃ¨le
   dispo$number<-NULL
   dispo$date<-NULL
   n<-2*nrow(dispo)/3
@@ -248,5 +248,7 @@ for(i in 1 : length(list_station))
 
 #Sauvegarde du modele
 saveRDS(resultat,file="resultat.RDS")
-rm(resultat)
+#recuperation du modele
+resultat<-readRDS(file="resultat.RDS")
+
 #
