@@ -141,7 +141,6 @@ getPrevDispo <- function(sta, dateheure, mode) {
     
     if (modele=="randomforest") {
       
-      #jour <- format(dh,"%w")
       jour <- as.factor(c("dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi")[as.POSIXlt(dh)$wday + 1])
       levels(jour) <- levels(f_jour)
       
@@ -208,11 +207,12 @@ getPrevDispo <- function(sta, dateheure, mode) {
   else {# (parking) on itère 25 fois au total (5 x 5 configuration à l'arrivée possibles)
     #res <- data.frame(number=character(0), available_bike_stands=numeric(0))
     res <- matrix(NA, nrow=nrow(dateheure), ncol=nrow(dateheure))
-    #t<- outer(1:nrow(res), 1:ncol(res), FUN=function(r,c) {getPrev(sta[c,]$number, dateheure[r,c]$date_heure)})
-    res<-outer(1:nrow(res), 1:ncol(res), FUN=Vectorize(function(r,c) {getPrev(sta[c,]$number, dateheure[r*c])}))
+    res<-outer(1:nrow(res), 1:ncol(res), FUN=Vectorize(function(r,c) {
+      p <- getPrev(sta[c,]$number, as.POSIXct(dateheure[r*c], origin="1970-01-01"))
+      p <- ifelse(mode=="bike",p,stations[colnames(dateheure)[c],]$bike_stands-p)
+      return(p)
+      }))
     dimnames(res) <- dimnames(dateheure)
-    #res<-outer(1:nrow(res), 1:ncol(res), FUN=function(r,c) {r+c})
-    #res <- setNames(res,c("number","available_bike_stands"))
     message("---")
     print(res)
   }
