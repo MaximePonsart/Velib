@@ -25,6 +25,7 @@ ColorPal <- colorNumeric(scales::seq_gradient_pal(low = "#132B43", high = "#56B1
 
 #API key DarkSky et variables meteo (precipitations, temperature)
 apiKeyDarksky <- "9778cdc6ddc2eaf7b6854ad412c21eec"
+Sys.setenv(DARKSKY_API_KEY = apiKeyDarksky)
 
 #API key Google Direction
 apiKeyGoogleDirection <- "AIzaSyA6A8jEGpG3__YDEIZngB5x_t8K12g_v7s"
@@ -37,25 +38,24 @@ geoParis <- "48.863,2.35"
 
 #fichier jeu de donnees pour les dispos Velib
 fStation <- "data/stations-velib-disponibilites-en-temps-reel.csv"
+stations <- NA #instance obet
+
+#fichier des conges scolaires
+fConges <- "data/vacance.csv"
+conges <- NA # instance objet
 
 #fichier liste des monuments de Paris
 fMonuments <- "data/monuments_paris.txt"
-
-#fichier matrice des distances stations
-fDistanceStation <- "data/mDistanceStation.Rda"
+monuments <- NA #instance objet
 
 #fichier temps de trajet deja calcules (offline Google drive_time)
 fGoogleDistanceMatrix <- "data/mGoogleDistanceMatrix.Rda"
 
-#fichier du modele de prevision (Random Forest, aka 'Serious")
-#fModRandomForest <- "data/modRandomForest.RDS"
+#fichier du modele de prevision (Random Forest)
 fModRandomForest <- "data/resultat.RDS"
 
-#data frame des stations
-stations <- NULL
-
 #vecteur des noms des stations actives
-stations_actives_nom <- NULL
+stations_actives_nom <- NA
 
 #----------------------------------------------------------------------------------------
 # initialisation des variables globales
@@ -90,11 +90,11 @@ dureeTotale <<- NA # matrice des durees calculees
 dfParcours <<- NA # data frame des parcours calcules
 
 modele <<- "none" # reference du modele statistique de prevision
-oModele <<- NA # l'instance du modele
+modeleRF <<- NA # instance du modele Random Forest
 
 meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
-getMeteo(dtTrajet)
+getMeteo(round(as.numeric(dtTrajet)),"time")
 
 wlog <<- "" # messages logs des traitements en cours
 winput <<- NA # fichier de donnees en cours de traitement
@@ -104,8 +104,6 @@ winput <<- NA # fichier de donnees en cours de traitement
 # recuperation des stations :
 stations<-read.csv(fStation, row.names=1, sep=";", fileEncoding = "UTF-8", stringsAsFactors = T)
 stations$position <- as.character(stations$position)
-#stations$status <- as.factor(stations$status)
-#position <- as.character(stations$position)
 v <- do.call('rbind',strsplit(stations$position,',',fixed=TRUE))
 stations$longitude <- as.numeric(v[,2])
 stations$latitude <- as.numeric(v[,1])
@@ -118,25 +116,17 @@ stations_actives_nom <- stations[stations$status=="OPEN",c("number","name")]
 stations_actives_nom <- stations_actives_nom[order(stations_actives_nom$name),]
 stations_actives_nom <- rbind(c("0","(aucune)"), stations_actives_nom)
 
-#calcul de la distance geo entre les stations :
-o <- "mDistanceStation"
-if (!exists(o) && file.exists(fDistanceStation)) {
-  load(file=fDistanceStation)
-} else if (!exists(o)) {
-  s <- stations
-  s$name <- rownames(s)
-  mDistanceStation <- getMatrixDistanceStation(s, c("name","latitude","longitude"))
-  rm(s)
-  save(mDistanceStation, file=fDistanceStation)
-}
-
-
-### recuperation des monuments
+# chargement des monuments
 monuments <- sort(scan(fMonuments, what="character", sep="\n", fileEncoding = "UTF-8"))
 
-### chargement du modele statistique de prevision
-#modele_RF<-readRDS(file=fModRandomForest)
-#(a tester avant activation)
+# chargement du modele statistique de prevision
+message("* debut chargement modele RF")
+if (!exists("modeleRF")) modeleRF <<- readRDS(file=fModRandomForest)
+message("* fin")
+
+# chargement des conges scolaires
+conges <- read.csv(fConges, sep=";")
+
 
 
 
