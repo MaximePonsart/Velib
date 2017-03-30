@@ -138,26 +138,51 @@ getPrevDispo <- function(sta, dateheure, mode) {
     if (modele=="none") return(1)
     if (modele=="random") return(sample(0:s$bike_stands,1))
     if (modele=="randomforest") {
-      message("*** modèle RF détecté ***")
-      res<-predict(modeleRF,
-              data.frame(format(dateSimulee,"%w"), #jour (factor 1 à 7)
-                         format(heureSimulee,"%H"), #heure (0 à 23)
-                         c(0,20,40)[which.min(abs(rep(as.numeric(format(heureSimulee,"%M")),3)-c(0,20,40)))], #minute (0, 20, 40)
-                         meteoTemperature, #température
-                         meteoPrecipitations, #precipitations,
-                         conges[conges$date==format(Sys.Date(), "%d/%m/%y"),]$vacance #congés scolaires : 0 oui, 1 non
-              ))
+
+jour <- format(dh,"%w")
+jour <- as.factor(c("dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi")[as.POSIXlt(dh)$wday + 1])
+levels(jour) <- levels(f_jour)
+
+heure <- format(dh,"%H")
+heure <- as.factor(as.character(as.numeric(format(Sys.time(),"%H"))-1))
+levels(heure) <- levels(f_heure)
+
+minute <- c(0,20,40)[which.min(abs(rep(as.numeric(format(dh,"%M")),3)-c(0,20,40)))]
+minute <- as.factor(minute)
+levels(minute) <- levels(f_minute)
+
+vacances <- vacances[vacances$date==format(dh, "%d/%m/%y"),]$vacance
+vacances <- as.factor(ifelse(vacances==1,"holidays","notholidays"))
+levels(vacances) <- levels(f_vacances)
+
+
+res<-predict(modeleRF[[as.numeric(s)]],
+             data.frame(jour, #jour (factor 1 à 7)
+                        heure, #heure (0 à 23)
+                        minute, #minute (0, 20, 40)
+                        meteoTemperature, #température
+                        meteoPrecipitations, #precipitations,
+                        conges #congés scolaires : 0 oui, 1 non
+             ),
+             type="response"
+)
+      
+      message("!!!")
+      message(res)
+      message("!!!")
       return(res)
     }
-  }
+  } # fin fonction getPrev
   
+  #---
+
   if (mode=="bike")
     res <- data.frame(number=character(0), available_bikes=numeric(0))
   else # mode=="stand"
     res <- data.frame(number=character(0), available_bike_stands=numeric(0))
   
   for (i in 1:nrow(sta)) {
-    p <- getPrev(sta[i,], dateheure)
+    p <- getPrev(sta[i,], dateheure[i,]$date_heure)
     res <- rbind(res, c(sta[i,]$number, p))
   }
   
@@ -168,7 +193,7 @@ getPrevDispo <- function(sta, dateheure, mode) {
   
   return(res)
   
-}
+} # fin fonction getPrevDispo
 
 
 #calcule la durée du trajet à pieds entre une adresse et une suite de stations
