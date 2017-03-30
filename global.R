@@ -57,6 +57,13 @@ fModRandomForest <- "data/resultat.RDS"
 #vecteur des noms des stations actives
 stations_actives_nom <- NA
 
+#variables facteurs pour le modele de prevision
+f_jour <-ordered(c("dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"),
+                 levels=c("dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"))
+f_heure <- ordered("0":"23",levels="0":"23")
+f_minute <- ordered(c("0","20","40"),levels=c("0","20","40"))
+f_vacance <- ordered(c("notholidays","holidays"))
+
 #----------------------------------------------------------------------------------------
 # initialisation des variables globales
 
@@ -90,7 +97,7 @@ dureeTotale <<- NA # matrice des durees calculees
 dfParcours <<- NA # data frame des parcours calcules
 
 modele <<- "none" # reference du modele statistique de prevision
-modeleRF <<- NA # instance du modele Random Forest
+#modeleRF  # instance du modele Random Forest
 
 meteoPrecipitations <<- NA # precipitations meteo de l'heure cible
 meteoTemperature <<- NA # temperature meteo de l'heure cible
@@ -127,6 +134,8 @@ message("* fin")
 # chargement des conges scolaires
 conges <- read.csv(fConges, sep=";")
 
+# debug
+debug <- NA
 
 
 
