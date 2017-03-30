@@ -161,16 +161,6 @@ getPrevDispo <- function(sta, dateheure, mode) {
       
       s <- as.numeric(s)
       
-      message("$$$")
-      message(s)
-      message(dh)
-      message(jour)
-      message(heure)
-      message(minute)
-      message(temperature)
-      message(precipitation)
-      message(vacance)
-      message("$$$")
       res <- predict(modeleRF[[s]],
                    data.frame(jour, #jour (factor 1 à 7)
                               heure, #heure (0 à 23)
@@ -183,40 +173,39 @@ getPrevDispo <- function(sta, dateheure, mode) {
       )
       res <- round(res)
       
-      message(res)
       return(res)
     }
     
   } # fin fonction getPrev
   
   #---
-  message("---")
-  message(str(sta))
-  message(str(dateheure))
-  message(mode)
-  message("---")
-
   
   if (mode=="bike") {# on itère 5 fois au total (5 configurations au départ possibles)
     res <- data.frame(number=character(0), available_bikes=numeric(0))
-    for (i in 1:nrow(sta))
+    for (i in 1:nrow(sta)) {
       p <- getPrev(sta[i,]$number, dateheure[i,]$date_heure)
-    res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
+      res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p)) 
+    }
     res <- setNames(res, c("number","available_bikes"))
   }
-  else {# (parking) on itère 25 fois au total (5 x 5 configuration à l'arrivée possibles)
-    #res <- data.frame(number=character(0), available_bike_stands=numeric(0))
+  else {# (stand) on itère 25 fois au total (5 x 5 configuration à l'arrivée possibles)
     res <- matrix(NA, nrow=nrow(dateheure), ncol=nrow(dateheure))
     res<-outer(1:nrow(res), 1:ncol(res), FUN=Vectorize(function(r,c) {
-      p <- getPrev(sta[c,]$number, as.POSIXct(dateheure[r*c], origin="1970-01-01"))
-      p <- ifelse(mode=="bike",p,stations[colnames(dateheure)[c],]$bike_stands-p)
+      #p <- getPrev(sta[c,]$number, as.POSIXct(dateheure[r*c], origin="1970-01-01"))
+      s <- colnames(dateheure)[c]
+      p <- getPrev(s, as.POSIXct(dateheure[r*c], origin="1970-01-01"))
+      #p <- getPrev(sta[c,]$number, as.POSIXct(dateheure[r*c], origin="1970-01-01"))
+      #p <- ifelse(mode=="bike",p,stations[colnames(dateheure)[c],]$bike_stands-p)
+      #print(paste0("s ",s))
+      #print(paste0("dispo ",p))
+      p <- max(stations[s,]$bike_stands-p,0)
+      #print(paste0("p",p))
       return(p)
       }))
     dimnames(res) <- dimnames(dateheure)
-    message("---")
-    print(res)
   }
 
+  print(res)
   return(res)
   
 } # fin fonction getPrevDispo

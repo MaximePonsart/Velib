@@ -12,7 +12,7 @@ tabPanel("admin", icon=icon("lock"),
   h2("Calcul de prévisions"),
   selectInput("modele_stat", "Modèle statistique",
              choices = setNames(c("none","randomforest"),c("(aucun)","Random forest")),
-             selected="none"),
+             selected="randomforest"),
   
   h2("Nouveau modèle Random forest"),
   fluidRow(
