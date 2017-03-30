@@ -197,30 +197,26 @@ getPrevDispo <- function(sta, dateheure, mode) {
   message(mode)
   message("---")
 
-  if (mode=="bike")
+  
+  if (mode=="bike") {# on itère 5 fois au total (5 configurations au départ possibles)
     res <- data.frame(number=character(0), available_bikes=numeric(0))
-  else # mode=="stand"
-    res <- data.frame(number=character(0), available_bike_stands=numeric(0))
-  
-  for (i in 1:nrow(sta)) {
-    message(paste0("appel getPrev : ",i))
-    message(sta[i,]$number)
-    #message(dateheure[i,]$date_heure)
-    p <- getPrev(sta[i,]$number, dateheure[i,]$date_heure)
-    message("retour getPrev")
-    if (mode=="bike")
-      res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
-    else
-      res <- rbind(res, data.frame(number=sta[i,]$number, available_bike_stands=p))
-    print(res)
-    message("next")
-  }
-  
-  if (mode=="bike")
+    for (i in 1:nrow(sta))
+      p <- getPrev(sta[i,]$number, dateheure[i,]$date_heure)
+    res <- rbind(res, data.frame(number=sta[i,]$number, available_bikes=p))
     res <- setNames(res, c("number","available_bikes"))
-  else
-    res <- setNames(res,c("number","available_bike_stands"))
-  
+  }
+  else {# (parking) on itère 25 fois au total (5 x 5 configuration à l'arrivée possibles)
+    #res <- data.frame(number=character(0), available_bike_stands=numeric(0))
+    res <- matrix(NA, nrow=nrow(dateheure), ncol=nrow(dateheure))
+    #t<- outer(1:nrow(res), 1:ncol(res), FUN=function(r,c) {getPrev(sta[c,]$number, dateheure[r,c]$date_heure)})
+    res<-outer(1:nrow(res), 1:ncol(res), FUN=Vectorize(function(r,c) {getPrev(sta[c,]$number, dateheure[r*c])}))
+    dimnames(res) <- dimnames(dateheure)
+    #res<-outer(1:nrow(res), 1:ncol(res), FUN=function(r,c) {r+c})
+    #res <- setNames(res,c("number","available_bike_stands"))
+    message("---")
+    print(res)
+  }
+
   return(res)
   
 } # fin fonction getPrevDispo
@@ -395,7 +391,7 @@ goCalcTrajet <- function() {
   
   parkings_dispos <- getPrevDispo(s_arrivee, dt_stations_arrivee, "stand")
   
-  if (all(is.na(parkings_dispos$available_bike_stands))) {
+  if (all(is.na(parkings_dispos))) {
     message("!impossible de calculer les prévisions")
     return(1)
   }
@@ -410,7 +406,7 @@ goCalcTrajet <- function() {
                          duree=NA,
                          mode="releasebike",
                          available_bikes=NA,
-                         available_bike_stands=as.character(sapply(parkings_dispos$available_bike_stands,FUN=function(x){rep(x,5)})),
+                         available_bike_stands=as.character(parkings_dispos),
                          idparcours=seq(1,25)                      
                        ))
   
@@ -460,8 +456,8 @@ goCalcTrajet <- function() {
   #---f7---
   
   #retrait des stations dont les prévisions de dispo (vélo ou parking) sont nulles
-  dureeTotale[rownames(dureeTotale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <<- NA
-  dureeTotale[,colnames(dureeTotale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <<- NA
+  #dureeTotale[rownames(dureeTotale)==velos_dispos[velos_dispos$available_bikes==0,]$number,] <<- NA
+  #dureeTotale[,colnames(dureeTotale)==parkings_dispos[parkings_dispos$available_stands==0,]$number] <<- NA
   
   #résultat final : le trajet de parcours dont la durée est la plus faible
   dureeTrajet <<- min(dureeTotale, na.rm=T)
