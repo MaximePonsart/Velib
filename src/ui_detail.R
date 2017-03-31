@@ -3,8 +3,8 @@ tabPanel("détail", icon=icon("info-circle"),
          h2("Stations sélectionnées"),
          tableOutput(outputId = "stationsSelect"),
          
-         h2("Distance géo entre stations sélectionnées"),
-         textOutput(outputId = "distanceGeoStationsSelect"),
+         # h2("Distance géo entre stations sélectionnées"),
+         # textOutput(outputId = "distanceGeoStationsSelect"),
          
          h2("Stations proches des stations sélectionnées"),
          fluidRow(

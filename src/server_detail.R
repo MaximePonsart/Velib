@@ -6,10 +6,10 @@ output$stationsSelect <- renderTable({
            c("number",names(stations)[-which(names(stations) %in% c("number","contract_name","bonus","position","longitude","latitude"))])]
 })
 
-output$distanceGeoStationsSelect <- renderText({
-  if (input$stationDepart != "0" && input$stationArrivee != "0")
-      getDistanceGeoStations(input$stationDepart, input$stationArrivee)
-})
+# output$distanceGeoStationsSelect <- renderText({
+#   if (input$stationDepart != "0" && input$stationArrivee != "0")
+#       getDistanceGeoStations(input$stationDepart, input$stationArrivee)
+# })
 
 output$stationsProches <- renderTable({
   if (input$choixStationDepartArrivee == "from" && input$stationDepart != "0") {

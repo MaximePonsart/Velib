@@ -156,7 +156,7 @@ getPrevDispo <- function(sta, dateheure, mode) {
       precipitation <- meteoPrecipitations
       
       vacance <- conges[conges$date==format(dh, "%d/%m/%y"),]$vacance
-      vacance <- as.factor(ifelse(vacances==1,"holidays","notholidays"))
+      vacance <- as.factor(ifelse(vacance==1,"holidays","notholidays"))
       levels(vacance) <- levels(f_vacance)
       
       s <- as.numeric(s)
